@@ -7,10 +7,15 @@
 ---
 
 ## 2. Address Space
-- **IPv4**: 32-bit address (~4.3 billion unique addresses).
-- **IPv6**: 128-bit address (~340 undecillion addresses).
+- **IPv4**: 32-bit address (2^32 = ~4.3 billion unique addresses).
+  - Dotted representation
+  - 4 groups of 8 bits (decimal 0-255)
+  - Example: 192.168.1.1
+- **IPv6**: 128-bit address (2^128 = ~340 undecillion addresses).
   - Provides virtually unlimited addresses.
   - Better suited for IoT devices and future growth.
+  - 8 groups of 16 bit Hexadecimal (0000-FFFF) separated by ":"
+  - Example: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
 
 ---
 

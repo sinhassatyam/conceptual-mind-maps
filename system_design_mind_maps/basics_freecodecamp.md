@@ -11,7 +11,7 @@
     - **Components**
       - headers (source/destination IP addresses)
       - data (message/information)
-  - **IPv4** vs. **IPv6** (to handle IP exhaustion).
+  - **IPv4** (2^32) vs. **IPv6** (2^128 to handle IP exhaustion).
   - **Demerits (Corrupted Data)**
     - Loss or dropped packets
     - Unordered packet delivery
@@ -130,7 +130,7 @@
 - **Non-relational**
   - Less rigid, more flexible structure like key-value pairs.
   - Follows BASE
-    - **Basically Available:** system guarantess availability.
+    - **Basically Available:** system guarantees availability.
     - **Soft State:** DB/table state may change over time, even without input.
     - **Eventual Consistency:** the system will become consistent over a period of time, given that the system doesn't receive input during that period.
   - At core, DB holds data in a hash-table-like structure (thus, extremely fast, simple and easy to use).
