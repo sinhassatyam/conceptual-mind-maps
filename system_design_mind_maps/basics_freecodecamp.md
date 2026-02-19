@@ -63,6 +63,7 @@
 - **Designing HA Systems**
   - Use **replication** and **load balancing** to ensure resilience.
   - Avoid Single Point of Failures, introduce redundancy.
+  - Replication, Redundancy, Load Balancing, Horizontal Scaling, CAP, Cache, Databases, Sharding & Partitioning, Workers, Queues, Schedulers, Client-Server distance (Latency)
 
 ---
 
@@ -97,7 +98,8 @@
 - **Use Case:** Distributes traffic across multiple servers to prevent overload.
 - Mainly introduced to regulate n/w calls or communications like client-load balancer-backend, backend-load balancer-database, backend-load balancer-caches etc.
 - Can act as rate limiter, reverse proxy server too.
-- Ensure Load Balancers redundancy, fail-over, fail-back to better scalability and reduce fault-tolerance.
+- Ensure Load Balancers redundancy, fail-over, fail-back to achieve scalability and reduce fault-tolerance.
+- Provides "Intelligent Request-Response routing".
 
 ## 7. Hashing
 - **Hashing:** Puts universe of keys to fixed size bags.
