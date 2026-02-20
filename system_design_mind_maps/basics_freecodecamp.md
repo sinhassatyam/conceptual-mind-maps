@@ -119,7 +119,7 @@
 
 ## 9. Databases
 - **Relational**
-  - Strictly enforced relationships like rows and columns.
+  - Strictly enforced relationships/schema like rows and columns.
   - Schema: Classic relational database or formalized entity structure.
   - Data being inserted should conform to the predefined schema.
   - SQL: Structured Query Language, a language designed to interact with structured (relational) database.
@@ -160,7 +160,7 @@
     - **Synchronous Replication**
       - Data replicated simultaneously to replicas.
       - Ensures strong consistency.
-      - Higher latency due to wait times.
+      - Higher write latency due to wait times.
     - **Asynchronous Replication**
       - Data replicated after confirming writes to the main database.
       - Better performance but eventual consistency.
@@ -169,7 +169,8 @@
     - Atomicity: Write to main DB fails if replica synchronization fails.
   - **Benefits**
     - High availability.
-    - Redundancy to handle failures.
+    - Redundancy to handle failures, prevent data loss.
+    - Active usage of redundant system helps scale a system too.
 
 ---
 
@@ -177,12 +178,12 @@
   - **Definition**
     - Partitioning data into smaller, manageable chunks called "shards."
   - **Purpose**
-    - Addresses scalability when replication alone cannot solve throughput or latency issues.
+    - Addresses scalability when replication alone cannot solve throughput or request-response cycle delays.
   - **Strategies**
     - **Row-based**: Each shard contains a fixed number of rows.
     - **Attribute-based**: Shards determined by specific attributes (e.g., region, customer ID).
   - **Benefits**
-    - Improves performance by distributing data across multiple smaller databases.
+    - Improves performance by distributing data across **multiple smaller databases (shards)**.
   - **Use Cases**
     - Global applications with data partitioned by geographic location.
 
@@ -192,7 +193,7 @@
 - **Definition**
   - Process of designating one server as the leader to perform specific tasks.
 - **Purpose**
-  - Avoid multiple servers performing conflicting actions (e.g., API updates).
+  - Avoid multiple servers performing conflicting actions (e.g., writes or API updates).
 - **Key Features**
   - Detection of leader failure.
   - Re-election of a new leader in case of failure.
@@ -212,9 +213,9 @@
 
 ## Connections and Concepts
 - **Indexing and Replication**
-  - Indexing optimizes data access speed; replication ensures availability and fault tolerance.
+  - Indexing optimizes data access speed; replication ensures availability, fault tolerance, prevents data loss.
 - **Replication and Sharding**
-  - Replication duplicates databases for redundancy, while sharding partitions data to improve scalability.
+  - Replication duplicates data for redundancy while, sharding stores partitioned data into shards improving scalability.
 - **Leader Election and Replication**
   - Leader election often operates on systems using replication to ensure one source controls updates.
 - **Sharding and Indexing**
@@ -223,7 +224,6 @@
 ---
 
 ## Summary
-This mind map connects key database and distributed system concepts, focusing on:
 - **Indexing**: Efficient querying.
 - **Replication**: High availability.
 - **Sharding**: Scalability.
