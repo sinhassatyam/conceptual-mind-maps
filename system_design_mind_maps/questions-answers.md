@@ -1,4 +1,5 @@
-# Quest-1. Partitioning vs Sharding:
+# Quest-1. 
+    Partitioning vs Sharding:
     As I understand:
     1. Partition: chunk of data, can be stored in single database (chunking into multiple tables) or shards
     2. Shards: chunked databases (with or without master-slave redundancy etc)
