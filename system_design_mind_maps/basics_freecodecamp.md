@@ -4,12 +4,12 @@
   - **Networks**: Connections
   - **Protocols**: rules that govern something, official procedure.
 - **IP (Internet Protocol)**
-  - Numeric label(Protocol) assigned to devices over Internet for communication.
+  - IP Address is a numeric label assigned to devices connected over networks using Internet Protocol for communication.
   - Messages sent in **packets**
     - **Definition of Packets**
       - small chunk of information (2^16 bytes)
     - **Components**
-      - headers (source/destination IP addresses)
+      - headers (source & destination IP addresses)
       - data (message/information)
   - **IPv4** (2^32) vs. **IPv6** (2^128 to handle IP exhaustion).
   - **Demerits (Corrupted Data)**
@@ -34,24 +34,24 @@
 ## 2. Storage, Latency, and Throughput
 - **Storage Types**
   - **Memory (RAM):** Fast but volatile(data lost on Power OFF), costly.
-  - **Disk Storage:** Persistent but slower (used for databases).
+  - **Disk Storage:** Persistent but slower (used for databases). HDD & SSD.
 
 - **Latency**
-  - Time taken (duration) for an operation (e.g., request-response cycle, searching in dict than array).
-  - Lower latency means faster response time.
   - Affected by Client-Server distance.
-  - Time taken for a request to reach server (Correct).
+  - Time taken for a client request to reach server (Correct).
+  - Request-Response cycle = Latency (duration for client request to reach server) + Server's response generation time on received request.
+  - Minimising Client-Server distance reduces latency. Efficient, optimum processing of request reduces server's response generation time (e.g., searching in a dict over an array).
 
 - **Throughput**
-  - Amount of data processed in a given time (e.g., Mbps or requests/second). Max capacity of a system.
-  - Higher throughput means better scalability improving performance.
+  - Max capacity of a system. Amount of data processed in a given time (e.g., Mbps or requests/second).
+  - Higher throughput implies better scalability improving performance.
   - System is limited by its lowest throughput (bottleneck) server/part.
 
 ---
 
 ## 3. System Availability
 - **High Availability (HA)**
-  - Achieved by reducing **single points of failure** and adding redundancy.
+  - Achieved by reducing **single points of failure** by replication for redundancy.
   - Fault-tolerant system: robust to handle failures in the networks, databases, servers etc.
 
 - **SLAs (Service Level Agreements)**
@@ -63,7 +63,7 @@
 - **Designing HA Systems**
   - Use **replication** and **load balancing** to ensure resilience.
   - Avoid Single Point of Failures, introduce redundancy.
-  - Replication, Redundancy, Load Balancing, Horizontal Scaling, CAP, Cache, Databases, Sharding & Partitioning, Workers, Queues, Schedulers, Client-Server distance (Latency)
+  - Replication, Redundancy, Load Balancing, Horizontal Scaling, CAP, Cache, Databases, Sharding & Partitioning, Workers (parallelism utilising CPU cycles), Queues, Schedulers (for preprocessing), Client-Server distance (Latency)
 
 ---
 
@@ -76,7 +76,7 @@
   - Use cache miss and eviction strategies according to use-case
 
 - **Content Delivery Networks (CDNs)**
-  - Distribute content across global servers to reduce load and latency.
+  - Distribute content (preprocessed data) across regional/global servers to reduce latency and load on main server.
   - Acts as mini-servers to quickly serve requests from a closer geographical location.
 
 ---
@@ -94,7 +94,7 @@
 
 ## 6. Load Balancing
 - **Algorithms**  
-  - Round-robin, Least connections, Load Based, Mixed Bag, Path or Service based, IP-hash, Weighted Round-robin, Server statuses, Alphabetic partition.
+  - Round-robin, Least connections, Load Based, Mixed Bag, Path or Service based, IP-hash (Geography), Weighted Round-robin, Server statuses, Alphabetic partition.
 - **Use Case:** Distributes traffic across multiple servers to prevent overload.
 - Mainly introduced to regulate n/w calls or communications like client-load balancer-backend, backend-load balancer-database, backend-load balancer-caches etc.
 - Can act as rate limiter, reverse proxy server too.
@@ -119,7 +119,7 @@
 
 ## 9. Databases
 - **Relational**
-  - Strictly enforced relationships/schema like rows and columns.
+  - Strictly enforced relationships/schema like rows and columns, datatypes, null, not-null, primary & foreign keys etc.
   - Schema: Classic relational database or formalized entity structure.
   - Data being inserted should conform to the predefined schema.
   - SQL: Structured Query Language, a language designed to interact with structured (relational) database.
