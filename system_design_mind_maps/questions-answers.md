@@ -228,3 +228,70 @@
     ***
 
     If you share what you’re preparing for (e.g., interviews vs building a specific system), this can be tuned to that context and we can drill into any one of these (e.g., detailed B+ tree layout or concrete replication configs).
+# Quwst-2.
+    Suggest scenarios, possibilities and explain below terms:
+    1. partial network outages
+    2. disconnected servers
+    3. nodes become isolated but remain functional
+
+    My name is GitHub Copilot and I am using Gemini 3 Flash Preview.
+
+    In the context of distributed systems and leader election, these terms describe various failure modes that challenge consensus:
+
+    1. Partial Network Outages
+    Explanation: A state where communication between nodes is inconsistent. Unlike a total blackout, some packets might get through, or communication might be unidirectional (Node A can hear Node B, but Node B cannot hear Node A).
+
+    Scenario: A faulty network switch or router starts dropping 50% of packets, or a misconfigured firewall rule blocks specific ports while leaving others open.
+    Possibility: This can lead to "flapping," where a leader is repeatedly marked as down and then up, causing constant re-elections and system instability (high churn).
+    2. Disconnected Servers
+    Explanation: A total loss of connectivity between one or more servers and the rest of the cluster. The server is still running, but it cannot send or receive any heartbeat signals or data.
+
+    Scenario: A network interface card (NIC) hardware failure or a maintenance worker accidentally unplugging a network cable.
+    Possibility: If the disconnected server was the leader, the remaining nodes will detect the loss of heartbeats and initiate a new election. If the server was a follower, it simply becomes unreachable until it is reconnected.
+    3. Nodes Become Isolated but Remain Functional
+    Explanation: Also known as a Network Partition. A subset of nodes can communicate with each other but are cut off from the rest of the cluster. These nodes continue to execute code and respond to local requests.
+
+    Scenario: In a multi-region deployment, the undersea cable or fiber link between regions is severed. Region A nodes can talk to each other, and Region B nodes can talk to each other, but Region A cannot talk to Region B.
+    Possibility: Split-Brain Scenario. If the isolation isn't handled by a consensus algorithm (like Raft or Paxos), both sides of the partition might elect their own leader. This can result in data corruption as two different "leaders" process conflicting writes simultaneously. Consensus algorithms prevent this by requiring a "quorum" (majority) to elect a leader or commit data.
+# Quest-3.
+- Question: Applications/Websites use payment gateways - do they poll to confirm payment received? Share different approaches used, possible to use and reasons behind their architecture. 
+
+- ### Answer:
+    While some applications use polling, modern architectures primarily rely on Webhooks (Push notifications) combined with polling as a fallback. Here are the common approaches and the architectural reasoning behind them:
+    1. Webhooks (Asynchronous Server-to-Server)
+    The payment gateway sends an HTTP POST request to the merchant's server as soon as the payment status changes (e.g., payment.succeeded).
+
+    Architecture: The gateway acts as a client, and the application acts as a listener.
+    Reasons:
+    Efficiency: Eliminates unnecessary network traffic compared to repeated polling.
+    Real-time: Updates the system-of-record immediately upon completion.
+    Reliability: Most gateways (Stripe, PayPal, Razorpay) implement retry logic if the merchant's server is down.
+    2. Polling (Synchronous/Asynchronous Pull)
+    The application repeatedly asks the gateway API for the status of a specific transaction ID.
+
+    Approaches:
+    Client-side Polling: The browser/mobile app pings the merchant's backend, which then pings the gateway.
+    Server-side Polling: A background worker on the merchant's server checks the status every few seconds.
+    Reasons:
+    Fallback: Essential if a webhook is missed or the network fails during the push notification.
+    UX: Used on "Processing..." screens to update the UI the moment the server confirms the payment.
+    3. Synchronous Redirects (Front-end Callback)
+    The user is redirected back to a "Success" or "Failure" URL with parameters (e.g., ?status=success&txn_id=123).
+
+    Architecture: Relies on the user's browser to pass the state back to the application.
+    Reasons:
+    User Experience: Provides immediate visual feedback to the customer.
+    Insecurity: This is not used for updating the database or fulfilling orders because users can manipulate URL parameters or close the browser before the redirect finishes.
+    4. Comparison Summary
+    Feature	Webhooks	Polling	Redirects
+    Direction	Gateway 
+    →
+    → App	App 
+    →
+    → Gateway	Browser 
+    →
+    → App
+    Reliability	High (Retry logic)	Medium (Resource heavy)	Low (User dependent)
+    Primary Use	Order fulfillment	UI updates / Fallback	Immediate UX feedback
+    Recommended Architecture:
+    Use Webhooks as the primary mechanism for business logic (updating databases, shipping items) and Client-side Polling solely to transition the UI from a "Pending" state to a "Success" state. Always implement a Reconciliation Job (periodic polling) to catch any transactions that missed both webhooks and redirects.

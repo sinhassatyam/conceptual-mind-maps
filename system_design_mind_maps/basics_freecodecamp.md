@@ -160,7 +160,7 @@
     - **Synchronous Replication**
       - Data replicated simultaneously to replicas.
       - Ensures strong consistency.
-      - Higher write latency due to wait times.
+      - Higher write response duration due to wait times.
     - **Asynchronous Replication**
       - Data replicated after confirming writes to the main database.
       - Better performance but eventual consistency.
@@ -240,10 +240,11 @@
   - Simple and predictable.
   - Causes frequent server requests.
 - **Downsides**
-  - High network and server load.
+  - High network, server load, repeated requests add to throughput and rate-limiting.
   - Not truly real-time.
 - **Use Case**
   - Driver location updates in a ride-hailing app every few seconds.
+  - Payment confirmation update via Payment Gateways.
 
 ### Streaming
 - **Definition**
@@ -283,7 +284,7 @@
 
 ---
 
-## Section 12: Messaging & Pub-Sub
+## Section 13: Messaging & Pub-Sub
 
 ### Messaging Systems
 - **Definition**
@@ -315,7 +316,7 @@
 
 ---
 
-## Section 13: Smaller Essentials
+## Section 14: Smaller Essentials
 
 ### Logging
 - **Purpose**
