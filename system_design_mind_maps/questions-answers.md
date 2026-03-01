@@ -242,7 +242,7 @@
     Explanation: A state where communication between nodes is inconsistent. Unlike a total blackout, some packets might get through, or communication might be unidirectional (Node A can hear Node B, but Node B cannot hear Node A).
 
     Scenario: A faulty network switch or router starts dropping 50% of packets, or a misconfigured firewall rule blocks specific ports while leaving others open.
-    Possibility: This can lead to "flapping," where a leader is repeatedly marked as down and then up, causing constant re-elections and system instability (high churn).
+    Possibility: This can lead to "flapping," where a leader is repeatedly marked as down and then up, causing constant re-elections and system instability (high churn). - How to fix this?
     2. Disconnected Servers
     Explanation: A total loss of connectivity between one or more servers and the rest of the cluster. The server is still running, but it cannot send or receive any heartbeat signals or data.
 
@@ -276,7 +276,7 @@
     Fallback: Essential if a webhook is missed or the network fails during the push notification.
     UX: Used on "Processing..." screens to update the UI the moment the server confirms the payment.
     3. Synchronous Redirects (Front-end Callback)
-    The user is redirected back to a "Success" or "Failure" URL with parameters (e.g., ?status=success&txn_id=123).
+    The user is redirected to a "Success" or "Failure" URL with parameters (e.g., ?status=success&txn_id=123).
 
     Architecture: Relies on the user's browser to pass the state back to the application.
     Reasons:
