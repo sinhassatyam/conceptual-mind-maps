@@ -88,12 +88,12 @@
 ## 3. Storage Hardware & RAID
 
 ### Hard Drive Technologies
-| Type | Speed | Cost | Notes |
-|------|-------|------|-------|
-| Parallel ATA / IDE | 7200 RPM | Low | Obsolete, found only in old machines |
-| SATA | 7200 RPM | Low-Medium | Standard for consumer desktops/laptops |
-| SAS (Serial Attached SCSI) | 10,000–15,000 RPM | High | Used in servers; 2x faster than SATA |
-| SSD | No moving parts | High | Fastest; no rotational latency; smaller max capacity at time of lecture |
+| Type                       |        Speed  | Cost      | Notes                                  |
+|----------------------------|---------------|-----------|----------------------------------------|
+| Parallel ATA / IDE         | 7200 RPM      | Low       | Obsolete, found only in old machines   |
+| SATA                       | 7200 RPM      | Low-Medium| Standard for consumer desktops/laptops |
+| SAS (Serial Attached SCSI) |10–15K RPM     | High      | Used in servers; 2x faster than SATA   |
+| SSD                        |No moving parts| High      | Fastest; no rotational latency         |
 
 - **Implication:** Databases are I/O intensive (every write and many reads touch disk). Upgrading to SAS or SSD directly improves DB throughput.
 - Malan's advice: Put your database on the fastest disks your budget allows; use cheaper disks for static files.
