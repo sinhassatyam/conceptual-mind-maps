@@ -120,7 +120,7 @@ RAID uses multiple physical drives to achieve either **performance** or **redund
 - Requires ≥ 3 drives.
 - Data is striped across all drives; one drive's worth of space is used for parity (spread across all drives, not on a dedicated drive).
 - **Tolerance:** Any 1 drive can fail without data loss.
-- **Usable capacity:** (N-1)/N of total raw capacity. 5×1TB drives → 4TB usable.
+- **Usable capacity:** (N-1)/N of total raw capacity. 5×1TB drives → 4TB usable + 1TB redundancy.
 - **Recovery:** Replace failed drive; array rebuilds from parity.
 - **Use case:** General-purpose server storage.
 
