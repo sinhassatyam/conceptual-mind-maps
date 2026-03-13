@@ -218,7 +218,8 @@ www   IN  A  1.2.3.6
 Internet
     |
 [Load Balancer]  ← single public IP
-   / |   /  |  [WS1][WS2][WS3]  ← private IPs (10.x.x.x or 192.168.x.x)
+   / |   /  |  
+[WS1][WS2][WS3]  ← private IPs (10.x.x.x or 192.168.x.x)
 ```
 
 - DNS returns the IP of the load balancer.
@@ -229,14 +230,14 @@ Internet
 
 ### Load Balancing Algorithms
 
-| Algorithm | Description | Best For |
-|-----------|-------------|----------|
-| Round Robin | Cycle through servers in order | Simple, uniform requests |
-| Weighted Round Robin | Assign more requests to more powerful servers | Heterogeneous hardware |
-| Least Connections | Send to whichever server has fewest active connections | Long-lived connections (WebSockets) |
-| Least Response Time | Send to server with lowest latency + fewest connections | Latency-sensitive |
-| IP Hash | Hash client IP → always same server | Basic sticky sessions |
-| Resource-based | Poll servers for CPU/memory; route to least loaded | Heavy, variable workloads |
+| Algorithm           | Description                                    | Best For                 |
+|---------------------|------------------------------------------------|--------------------------|
+| Round Robin         | Cycle through servers in order                 | Simple, uniform requests |
+| Weighted Round Robin| Assign more requests to more powerful servers  | Heterogeneous hardware   |
+| Least Connections   | Send to server with fewest active connections  | Long-lived connections(WebSockets) |
+| Least Response Time |Send to server with lowest latency+fewest connections| Latency-sensitive    |
+| IP Hash             | Hash client IP → always same server                 | Basic sticky sessions|
+| Resource-based      | Poll servers for CPU/memory; route to least loaded  | Heavy, variable workloads|
 
 ### SSL Termination at the Load Balancer
 - Handling SSL (HTTPS, port 443) requires expensive asymmetric cryptography.
