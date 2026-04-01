@@ -4,6 +4,7 @@
   - **Networks**: Connections
   - **Protocols**: rules that govern something, official procedure.
 - **IP (Internet Protocol)**
+  - Protocol/rules that govern the Internet - Internet Protocol
   - IP Address is a numeric label assigned to devices connected over networks using Internet Protocol for communication.
   - Messages sent in **packets**
     - **Definition of Packets**
@@ -78,6 +79,7 @@
 - **Content Delivery Networks (CDNs)**
   - Distribute content (preprocessed data) across regional/global servers to reduce latency and load on main server.
   - Acts as mini-servers to quickly serve requests from a closer geographical location.
+  - Two types of CDNs: Push & Pull CDNs
 
 ---
 
