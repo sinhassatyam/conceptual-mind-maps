@@ -198,14 +198,14 @@
 
     ### Key differences
 
-    | Aspect | CPU Cache | RAM (Main Memory) |
-    | --- | --- | --- |
-    | Typical tech | SRAM | DRAM |
-    | Location | On-CPU or very close (L1/L2/L3) | On DIMMs on motherboard |
-    | Purpose | Hide latency of RAM, exploit locality | Main working memory for programs |
-    | Size | KB–tens of MB | GB–TB |
-    | Latency | Few CPU cycles (L1), tens (L2/L3) | Hundreds of cycles | 
-    | Cost/bit | Much higher | Lower |  [scribd](https://www.scribd.com/document/926702258/q21)
+    | Aspect        | CPU Cache                             | RAM (Main Memory)                      |
+    | --------------| --------------------------------------| ---------------------------------------|
+    | Typical tech  | SRAM                                  | DRAM                                   |
+    | Location      | On-CPU or very close (L1/L2/L3)       | On DIMMs on motherboard                |
+    | Purpose       | Hide latency of RAM, exploit locality | Main working memory for programs       |
+    | Size          | KB–tens of MB                         | GB–TB                                  |
+    | Latency       | Few CPU cycles (L1), tens (L2/L3)     | Hundreds of cycles                     | 
+    | Cost/bit      | Much higher                           | Lower                                  |  [scribd](https://www.scribd.com/document/926702258/q21)
 
     - Cache is organized in **lines** (e.g., 64 bytes), with policies like direct-mapped, set-associative, fully associative, plus LRU/PLRU replacement. [dev](https://dev.to/sachin_tolay_052a7e539e57/understanding-cpu-cache-organization-and-structure-4o1o)
     - When CPU needs data: check L1 → L2 → L3 → RAM; on miss, bring a line from lower level up, exploiting spatial + temporal locality. [scribd](https://www.scribd.com/document/926702258/q21)
@@ -295,3 +295,96 @@
     Primary Use	Order fulfillment	UI updates / Fallback	Immediate UX feedback
     Recommended Architecture:
     Use Webhooks as the primary mechanism for business logic (updating databases, shipping items) and Client-side Polling solely to transition the UI from a "Pending" state to a "Success" state. Always implement a Reconciliation Job (periodic polling) to catch any transactions that missed both webhooks and redirects.
+
+# Quest-4.
+    Perplexity's System Design Thread:
+    In-memory vs RAM vs Cache vs Memory vs ROM
+- ### Answer:
+    Here’s a compact, concept-clarifying view of all five terms.
+
+    ***
+    ## 1. “Memory” (generic)
+    Informal umbrella word that can mean:
+
+    - Any place that stores bits: registers, cache, RAM, SSD, HDD.
+    - In CS theory: an abstract addressable store.
+
+    When people say “your computer’s memory” in day-to-day speech, they almost always mean **RAM**, not SSD/HDD. [linkedin](https://www.linkedin.com/posts/pawan-kumar-581b5b246_computerbasics-csstudents-techconcepts-activity-7420783344801480704-GHaJ)
+
+    ***
+    ## 2. RAM (main memory)
+    **RAM = Random Access Memory**
+
+    - **What it is:** Primary working memory where the CPU sees programs and data while they’re running. [linkedin](https://www.linkedin.com/posts/pawan-kumar-581b5b246_computerbasics-csstudents-techconcepts-activity-7420783344801480704-GHaJ)
+    - **Properties:**
+    - **Volatile:** Loses content when power is off. [youtube](https://www.youtube.com/watch?v=xfIF_H1uLEg)
+    - **Speed:** Much faster than SSD/HDD, slower than CPU cache. [youtube](https://www.youtube.com/watch?v=p_7x2uFM2cM)
+    - **Capacity:** GB–TB range, much larger than cache. [educatly](https://www.educatly.com/blog/818/primary-storage-explained-ram-cache-registers)
+    - **Use in systems design:**  
+    - DB buffer caches, in-memory key–value stores, JVM heaps, Golang heaps all live in RAM.
+    - When you say “load it into memory” at system-design scale, you usually mean “keep hot working set in RAM”.
+
+    ***
+    ## 3. Cache (CPU cache, memory cache)
+    **Cache = a small, fast copy of hotter data, sitting near the consumer.**
+    ### Hardware (CPU) cache
+    - **Location:** On-die or very close to CPU (L1, L2, L3). [educatly](https://www.educatly.com/blog/818/primary-storage-explained-ram-cache-registers)
+    - **Properties:**
+    - **Very small:** KB–tens of MB. [educatly](https://www.educatly.com/blog/818/primary-storage-explained-ram-cache-registers)
+    - **Very fast:** Faster than RAM; CPU always checks cache before RAM. [youtube](https://www.youtube.com/watch?v=p_7x2uFM2cM)
+    - **Volatile.** [youtube](https://www.youtube.com/watch?v=xfIF_H1uLEg)
+    - **Role:** Keeps recently/frequently used instructions and data so the CPU doesn’t wait on slower RAM every time. [educatly](https://www.educatly.com/blog/818/primary-storage-explained-ram-cache-registers)
+    ### Software / system caches
+    - **Examples:** OS page cache, DB buffer cache, Redis/Memcached, HTTP reverse-proxy cache.
+    - They conceptually mirror CPU cache:
+    - Smaller, faster tier (RAM in a cache node) in front of a slower tier (disk, remote DB).
+    - Store **redundant copies**; original remains in backing store.
+
+    ***
+    ## 4. ROM
+    **ROM = Read-Only Memory**
+
+    - **What it is:** Non-volatile memory that retains contents without power. [youtube](https://www.youtube.com/watch?v=xfIF_H1uLEg)
+    - **Properties:**
+    - Traditionally **read-only** (now often flash/EEPROM, so reprogrammable but not frequently).
+    - Slower than RAM, but data is permanent firmware. [youtube](https://www.youtube.com/watch?v=8QKleMxvOiU)
+    - **Use:**  
+    - BIOS/UEFI firmware, microcontroller boot code, embedded device firmware.
+
+    Think: **“code that must be there on power-on and must not vanish”**.
+
+    ***
+    ## 5. “In-memory” (in-memory DB / computing)
+    “In-memory” is about **where your data/processing live in the hierarchy**.
+
+    - **In-memory database:** DB that keeps most/all operational data directly in main memory (RAM) instead of disk. [gridgain](https://www.gridgain.com/resources/glossary/in-memory-computing-platform/in-memory-database)
+    - Examples: Redis (as DB), SAP HANA, MemSQL/SingleStore, Exasol. [exasol](https://www.exasol.com/glossary/in-memory-database-definition/)
+    - **Reason:** RAM access is orders of magnitude faster than disk; queries avoid disk seeks and complex I/O paths. [en.wikipedia](https://en.wikipedia.org/wiki/In-memory_database)
+    - **In-memory cache:** Redis/Memcached keeping hot data in RAM on a separate tier.
+    - **In-memory computing platform:** Whole compute pipeline (state, intermediate results) is kept in RAM across nodes (e.g., Spark with enough executors and memory).
+
+    So:
+
+    - **“In-memory” = “resides in RAM rather than disk”**, at the software/system level. [gridgain](https://www.gridgain.com/resources/glossary/in-memory-computing-platform/in-memory-database)
+    - RAM is the **hardware**; “in-memory” is a **design choice** about using RAM as the primary backing store.
+
+    ***
+    ## 6. Putting it all together (mental model)
+    Hierarchical view from CPU outward:
+
+    1. **Registers** – inside CPU, fastest, tiny.
+    2. **CPU cache (L1/L2/L3)** – on-die, very fast, small, volatile. [educatly](https://www.educatly.com/blog/818/primary-storage-explained-ram-cache-registers)
+    3. **RAM (main memory)** – on motherboard, fast, larger, volatile. [linkedin](https://www.linkedin.com/posts/pawan-kumar-581b5b246_computerbasics-csstudents-techconcepts-activity-7420783344801480704-GHaJ)
+    4. **“In-memory” systems** – software that deliberately keeps its working set in RAM instead of disk. [gridgain](https://www.gridgain.com/resources/glossary/in-memory-computing-platform/in-memory-database)
+    5. **Storage (SSD/HDD)** – persistent, slowest, huge.
+    6. **ROM / Flash** – persistent firmware storage, rarely written. [youtube](https://www.youtube.com/watch?v=xfIF_H1uLEg)
+
+    You can think of:
+
+    - **Cache vs RAM:** both volatile; cache is *smaller and closer* to the CPU, RAM is *bigger and a bit farther*. [youtube](https://www.youtube.com/watch?v=p_7x2uFM2cM)
+    - **RAM vs in-memory:** RAM is the medium; “in-memory” is *choosing* to put your data structures or DB there instead of disk. [en.wikipedia](https://en.wikipedia.org/wiki/In-memory_database)
+    - **Memory vs ROM:** generic vs specific; ROM is a specific non-volatile memory type for firmware.
+
+    ***
+
+    To make this more system-design-specific: which of these do you most want to drill into next—CPU/RAM/cache hierarchy as it impacts latency and throughput, or “in-memory” architectures like Redis/SAP HANA/SingleStore?
