@@ -129,7 +129,7 @@
   - Follows ACID property
     - **Atomicity:** One operation fails, entire transaction fails. All or nothing. It must either be complete in its entirety or have no effect whatsoever.
     - **Consistency:** Every read operation receives the most recent write operation result. Full-synchronisation. It must conform to existing constraints in the database.
-    - **Isolation:** you can "concurrently" (at the same time) run multiple transactions on a database, but the database will end up with a state that looks as though each operation had been run serially ( in a sequence, like a queue of operations). It must not affect other transactions.
+    - **Isolation:** you can "concurrently" (at the same time) run multiple transactions on a database, but the database will end up with a state that looks as though each operation has been run serially ( in a sequence, like a queue of operations). It must not affect other transactions.
     - **Durability:** data stored in DB is persistent (ROM or disk), not in-memory (RAM).
 - **Non-relational**
   - Less rigid, more flexible structure like key-value pairs.
@@ -271,7 +271,7 @@
   - Limits the number of operations a client can perform in a time window.
   - Load Balancer: Fixed size / Leaky Bucket
 - **Benefits**
-  - Protects servers from abuse (e.g., DoS attacks).
+  - Protects servers from abuse (e.g., Denial of Service (DoS) attacks).
   - Enforces usage tiers (e.g., free-tier API limits).
 - **Key Considerations**
   - Fast limit checks with in-memory databases (e.g., Redis).
