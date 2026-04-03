@@ -99,7 +99,7 @@
   - Round-robin, Least connections, Load Based, Mixed Bag, Path or Service based, IP-hash (Geography), Weighted Round-robin, Server statuses, Alphabetic partition.
 - **Use Case:** Distributes traffic across multiple servers to prevent overload.
 - Mainly introduced to regulate n/w calls or communications like client-load balancer-backend, backend-load balancer-database, backend-load balancer-caches etc.
-- Can act as rate limiter (leaky bucket algo etc), reverse proxy server too.
+- Can act as rate limiter, reverse proxy server too.
 - Ensure Load Balancers redundancy, fail-over, fail-back to achieve scalability and reduce fault-tolerance.
 - Provides "Intelligent Request-Response routing".
 
