@@ -48,7 +48,7 @@
 ### Dedicated / Bare-Metal Server
 - You rent or own an entire physical machine.
 - Full control of hardware, OS, network.
-- Used when VPS overhead is unacceptable (high I/O workloads, compliance needs).
+- Used when VPS overhead is unacceptable (request goes to app -> guest OS -> hypervisor -> physical hardware thus, high I/O workloads, compliance needs).
 
 ### Cloud (AWS EC2 / Elastic Compute Cloud)
 - Self-service VPS provisioning at cents-per-minute pricing.

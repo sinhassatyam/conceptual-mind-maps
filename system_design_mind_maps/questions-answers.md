@@ -228,7 +228,7 @@
     ***
 
     If you share what you’re preparing for (e.g., interviews vs building a specific system), this can be tuned to that context and we can drill into any one of these (e.g., detailed B+ tree layout or concrete replication configs).
-# Quwst-2.
+# Quest-2.
     Suggest scenarios, possibilities and explain below terms:
     1. partial network outages
     2. disconnected servers
@@ -299,7 +299,7 @@
 # Quest-4.
     Perplexity's System Design Thread:
     In-memory vs RAM vs Cache vs Memory vs ROM
-- ### Answer:
+### Answer:
     Here’s a compact, concept-clarifying view of all five terms.
 
     ***
@@ -388,3 +388,51 @@
     ***
 
     To make this more system-design-specific: which of these do you most want to drill into next—CPU/RAM/cache hierarchy as it impacts latency and throughput, or “in-memory” architectures like Redis/SAP HANA/SingleStore?
+
+# Quest-5.
+    Used when VPS overhead is unacceptable (high I/O workloads, compliance needs). Explain VPS overhead, high I/O workloads and related terms. Use examples as well.
+### Answer:
+    The statement you provided perfectly describes the primary use case for Bare Metal Servers (or Dedicated Servers) as opposed to cloud-based virtual machines.
+
+    To understand why a team would move away from a VPS (Virtual Private Server), let's break down the concepts of VPS overhead, high I/O workloads, compliance needs, and other related terms.
+
+    1. VPS Overhead
+    When you use a VPS (like an AWS EC2 instance, a DigitalOcean Droplet, or a Google Cloud Compute Engine VM), you are not running directly on physical hardware. Instead, you are running on a Hypervisor (such as KVM, VMware, or Hyper-V).
+
+    The hypervisor is a software layer that splits a massive physical server into multiple smaller virtual servers. It acts as a middleman between your operating system and the actual hardware (CPU, RAM, Disk).
+
+    The Overhead: Every time your application needs to write a file to the disk or send a packet over the network, it can't talk directly to the hardware. The **request goes from your app -> guest OS -> hypervisor -> physical hardware**. This translation takes a small amount of CPU power and adds microscopic amounts of latency. While this latency is negligible for 95% of web applications, it becomes a severe bottleneck for extreme-performance applications.
+
+    2. High I/O Workloads
+    I/O stands for Input/Output. It generally refers to how fast a system can read from or write to its storage disk (Disk I/O) or network (Network I/O).
+
+    The metric used to measure this is IOPS (Input/Output Operations Per Second). High I/O workloads are applications that demand tens of thousands, or even millions, of IOPS.
+
+    Examples of High I/O Workloads:
+
+    Large Relational Databases: A massive PostgreSQL or MySQL database powering an e-commerce platform during Black Friday, requiring constant, rapid reads and writes.
+    Big Data & Analytics: Systems like Apache Hadoop, Elasticsearch, or ClickHouse that ingest and query terabytes of log data every minute.
+    High-Frequency Trading (HFT): Financial systems where executing a trade a microsecond too late means losing money.
+    Why a VPS struggles here: If your database is on a VPS, it shares the physical SSD/NVMe drives with other virtual machines. The hypervisor has to queue and manage the I/O requests from all tenants. On a bare-metal server, your database has 100% direct, uncontested access to the PCIe bus and NVMe drives, bypassing hypervisor queues entirely.
+
+    3. Compliance Needs
+    Strict regulatory frameworks (like HIPAA for healthcare, PCI-DSS for finance, or GDPR/FedRAMP) often demand rigorous data security and isolation.
+
+    Physical Isolation: In a VPS environment, you are sharing CPU caches and physical RAM modules with other companies. Historically, hardware vulnerabilities like Spectre and Meltdown proved that malicious actors could theoretically cross the hypervisor boundary and read data from other virtual machines on the same physical chip.
+    Data Sovereignty: Compliance often dictates that data must reside on specific, auditable physical hardware that is not shared with unknown third parties. Bare metal servers guarantee single-tenancy (you are the only one on the hardware).
+    Related Terms You Should Know
+    **Noisy Neighbor Effect**: A common VPS issue where another customer's virtual machine on your shared physical server suddenly experiences a massive spike in traffic or disk usage. Because resources (like disk bandwidth or network ports) are physically shared, their spike can cause your VPS to temporarily slow down.
+    **Bare Metal Server**: A physical computer server dedicated to a single tenant. No hypervisor is installed by the cloud provider; you install your OS directly onto the hardware.
+    **Hypervisor / Virtualization Machine Monitor (VMM)**: The software that creates and runs virtual machines by isolating operating systems and applications from the underlying computer hardware.
+    Measuring the Overhead
+    If you ever want to see if your current VPS is bottlenecking your disk I/O, developers and system administrators typically use a tool called fio (Flexible I/O Tester).
+
+    Here is a bash command you can run to benchmark random read/write performance, which simulates a database workload. You can run this on a VPS and a Bare Metal server to compare the raw IOPS difference:
+
+    bash
+    # Install fio first (e.g., sudo apt-get install fio)
+    # This test creates a 4GB file and performs a 75% read / 25% write random I/O test.
+    fio --randrepeat=1 --ioengine=libaio --direct=1 --name=my_benchmark \
+        --filename=test_file --bs=4k --iodepth=64 --size=4G --readwrite=randrw --rwmixread=75
+    When moving from a VPS to Bare Metal for high I/O tasks, you trade the convenience of cloud-native features (like instant scaling and automated snapshots) for maximum, predictable hardware performance.
+
