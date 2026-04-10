@@ -256,7 +256,7 @@ Internet
 
 ### Hardware Load Balancers
 - Vendors: Cisco, Citrix NetScaler, F5 BIG-IP, Barracuda.
-- Expensive: A mid-range unit may cost $20,000–$100,000+. Enterprise pairs with support contracts can exceed $100k.
+- Expensive: A mid-range unit may cost $20,000–$100,000+. Enterprise pairs with support contracts can exceed $100K.
 - Offload SSL at hardware speed. Advanced L7 routing. High availability built in.
 - **Malan's take:** Often atrociously overpriced for what they do. Software solutions like HAProxy can achieve the same at zero cost for many use cases.
 
@@ -264,8 +264,8 @@ Internet
 The load balancer itself is a single point of failure. You need two.
 
 #### Active-Active
-- Both load balancers are live simultaneously.
-- Both accept traffic; DNS or another mechanism distributes across both.
+- Both load balancers are LIVE simultaneously.
+- Both accept traffic; DNS or other mechanism distributes load/request across both.
 - If one dies, the other continues to handle 100% of traffic.
 - Heartbeat packets sent between the two at regular intervals (e.g., every second).
 - If heartbeat stops: surviving LB detects failure and takes full ownership.
