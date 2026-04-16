@@ -335,7 +335,7 @@ The load balancer inserts a special cookie into the HTTP response.
 Interpreted languages (PHP, Python, Ruby) go through an extra step relative to compiled languages (C, C++):
 
 1. Source file is read from disk.
-2. Interpreter **parses** the source into an AST.
+2. Interpreter **parses** the source into an AST (Abstract Syntax Tree).
 3. AST is **compiled** into internal **opcodes** (bytecode).
 4. Opcodes are **executed** by the VM.
 
@@ -345,6 +345,12 @@ In vanilla PHP (without acceleration), steps 2–3 happen **on every single requ
 An opcode cache intercepts step 2–3 and stores the resulting opcodes in shared memory. On subsequent requests, PHP skips parsing/compilation entirely and jumps straight to execution.
 
 **Effect:** 2–5x or greater reduction in CPU time per request on typical PHP workloads.
+``` 
+Trequest = Tio + Tparse + Tcompile + Texecute
+Tparse + Tcompile often accounts for substantial CPU workload and time.
+Trequest ≈ Tcache_lookup + Texecute
+```
+Note: In production environments where performance is paramount, developers sometimes disable this automatic check to save on system calls, opting instead to manually flush the cache during deployment cycles
 
 **Caveat:** If you modify a `.php` source file, the stale opcodes must be invalidated. Opcode cache software detects file modification time changes automatically, or you can manually flush the cache after deployment.
 
@@ -399,6 +405,11 @@ Disk (spinning HDD) → SSD → Database (with indexes) → Memcached/Redis (RAM
 - **How it works:** MySQL hashes the SQL string. On first execution, the result set is stored in the query cache. On identical subsequent queries (exact string match), the cached result is returned without hitting disk/indexes.
 - **Invalidation:** If any row in any of the query's referenced tables changes (INSERT/UPDATE/DELETE), all cached queries touching that table are automatically invalidated.
 - **Limitation:** Cache is per-server. High write rates invalidate the cache constantly, making it ineffective. Query cache was eventually **removed in MySQL 8.0** due to poor scalability under write-heavy workloads.
+**Alternatives for MySQL 8.0+:**
+- **ProxySQL:** A high-performance database proxy that includes a query cache. It is external to the MySQL server and avoids the global lock contention of the legacy built-in cache.
+- **Application Caching:** Use Redis or Memcached to store query results manually (see Strategy 3).
+- **In-Memory Engines:** Use the `MEMORY` engine for temporary tables or lookup data that needs high speed but is volatile.
+- **MySQL HeatWave:** In managed environments like Oracle Cloud, HeatWave provides query result caching at the infrastructure level.
 
 ### Strategy 3: Memcached (Application-Level Cache)
 Memcached is a free, open-source, in-memory key-value store. It runs as a separate server process and is accessible over TCP.
@@ -442,15 +453,15 @@ if ($user === false) {
 
 **Memcached vs Redis:**
 
-| Feature | Memcached | Redis |
-|---------|-----------|-------|
-| Data types | String/binary blobs only | Strings, Lists, Sets, Sorted Sets, Hashes, Streams |
-| Persistence | No (RAM only) | Optional (RDB snapshots, AOF log) |
-| Replication | No (client-side sharding only) | Yes (master-replica) |
-| Clustering | Client-side sharding | Redis Cluster (native sharding) |
-| Pub/Sub | No | Yes |
-| Lua scripting | No | Yes |
-| Best for | Pure caching | Caching + sessions + queues + leaderboards |
+| Feature      | Memcached                    | Redis                                              |
+|--------------|------------------------------|----------------------------------------------------|
+| Data types   | String/binary blobs only     | Strings, Lists, Sets, Sorted Sets, Hashes, Streams |
+| Persistence  | No (RAM only)                | Optional (RDB snapshots, AOF log)                  |
+| Replication  |No (client-side sharding only)| Yes (master-replica)                               |
+| Clustering   | Client-side sharding         | Redis Cluster (native sharding)                    |
+| Pub/Sub      | No                           | Yes                                                |
+| Lua scripting| No                           | Yes                                                |
+| Best for     | Pure caching                 | Caching + sessions + queues + leaderboards         |
 
 > **DDIA (Chapter 5):** Caching is a read-heavy optimisation. The key challenge is **cache invalidation** — knowing when to expire or update cached data. "Cache invalidation is one of the two hard problems in computer science" (the other being naming things and off-by-one errors).
 
