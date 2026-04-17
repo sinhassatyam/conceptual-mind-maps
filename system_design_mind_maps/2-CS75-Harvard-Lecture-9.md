@@ -623,10 +623,10 @@ Partition 2 (N–Z): users with last_name LIKE 'N%' ... 'Z%'
 
 ### Vertical vs Horizontal Partitioning
 
-| Type | Description | Example |
-|------|-------------|---------|
-| Vertical | Split by columns — different tables go to different servers | Users table on DB1, Orders table on DB2 |
-| Horizontal | Split by rows — same table's rows distributed across servers | Users with ID 1–1M on DB1, 1M–2M on DB2 |
+| Type        | Description                                                | Example                  |
+|-------------|------------------------------------------------------------|--------------------------|
+| Vertical    |Split by columns — different tables go to different servers |Users table on DB1, Orders table on DB2|
+| Horizontal  |Split by rows — same table's rows distributed across servers|Users with ID 1–1M on DB1, 1M–2M on DB2|
 
 ### Cross-Shard Queries
 The main difficulty with horizontal sharding. A query like `SELECT * FROM orders JOIN users ON users.id = orders.user_id` becomes non-trivial if `orders` is on one shard and `users` is on another. Solutions:
@@ -658,12 +658,12 @@ The main difficulty with horizontal sharding. A query like `SELECT * FROM orders
 
 ### Measuring Availability
 
-| Availability | Downtime/year |
-|-------------|---------------|
-| 99% ("two nines") | ~3.65 days |
-| 99.9% ("three nines") | ~8.7 hours |
-| 99.99% ("four nines") | ~52 minutes |
-| 99.999% ("five nines") | ~5.3 minutes |
+| Availability            | Downtime/year |
+|-------------------------|---------------|
+| 99% ("two nines")       | ~3.65 days    |
+| 99.9% ("three nines")   | ~8.7 hours    |
+| 99.99% ("four nines")   | ~52 minutes   |
+| 99.999% ("five nines")  | ~5.3 minutes  |
 
 > **Google SRE Book:** "Hope is not a strategy." HA requires deliberate design, runbooks, regular failover drills, and chaos engineering (intentionally killing components to test recovery).
 
