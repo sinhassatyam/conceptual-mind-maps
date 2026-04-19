@@ -752,15 +752,15 @@ Only allow the minimum network access necessary. Every open port is a potential 
 
 ### Firewall Rules for a Typical LAMP Web Stack
 
-| Traffic | Source | Destination | Port | Protocol | Allow? |
-|---------|--------|-------------|------|----------|--------|
-| HTTPS from users | Internet | Load Balancer | 443 | TCP | ✅ |
-| HTTP from users | Internet | Load Balancer | 80 | TCP | ✅ (redirect to 443) |
-| SSH for admin | Your IP only | Servers | 22 | TCP | ✅ (IP restricted) |
-| HTTP (internal) | Load Balancer | Web Servers | 80 | TCP | ✅ |
-| MySQL queries | Web Servers | DB servers | 3306 | TCP | ✅ |
-| MySQL from Internet | Internet | DB servers | 3306 | TCP | ❌ Never! |
-| SSH between servers | Web Servers | DB servers | 22 | TCP | ❌ (minimal footprint) |
+| Traffic          | Source         | Destination   | Port |Protocol| Allow?              |
+|------------------|----------------|---------------|------|--------|---------------------|
+| HTTPS from users | Internet       | Load Balancer | 443  | TCP    | ✅                   |
+| HTTP from users  | Internet       | Load Balancer | 80   | TCP    | ✅ (redirect to 443) |
+| SSH for admin    | Your IP only   | Servers       | 22   | TCP    | ✅ (IP restricted)   |
+| HTTP (internal)  | Load Balancer  | Web Servers   | 80   | TCP    | ✅                   |
+| MySQL queries    | Web Servers    | DB servers    | 3306 | TCP    | ✅                   |
+|MySQL from Internet| Internet      | DB servers    | 3306 | TCP    | ❌ Never!            |
+|SSH between servers| Web Servers   | DB servers    | 22   | TCP    |❌ (minimal footprint)|
 
 ### Why Block MySQL from the Internet?
 - If port 3306 is exposed publicly, attackers can:
@@ -883,31 +883,31 @@ From the lecture + supplementary resources:
 
 ## Quick Reference: Technologies Mentioned
 
-| Technology | Category | Notes |
-|------------|----------|-------|
-| Apache / Nginx | Web Server | Apache multi-process; Nginx event-driven, better under concurrency |
-| HAProxy | Software LB | Free, TCP + HTTP, highly configurable |
-| AWS ELB / ALB | Managed LB | Application Load Balancer = L7; NLB = L4 |
-| Memcached | Cache | In-memory KV store, LRU eviction, volatile |
-| Redis | Cache + Store | Persistent options, rich data types |
-| MySQL InnoDB | RDBMS | ACID, row-level locking, default engine |
-| MySQL MyISAM | RDBMS | No transactions, table-level locks |
-| MySQL MEMORY | RDBMS | RAM-only, volatile, fast |
-| MySQL Archive | RDBMS | Compressed, write-heavy log storage |
-| MySQL NDB | Clustered RDBMS | Distributed, in-memory, HA |
-| RAID 0 | Storage | Striping, performance |
-| RAID 1 | Storage | Mirroring, redundancy |
-| RAID 5 | Storage | Striping + parity, 1-drive fault tolerance |
-| RAID 6 | Storage | Striping + double parity, 2-drive fault tolerance |
-| RAID 10 | Storage | Striping + mirroring, performance + redundancy |
-| SAS drives | Storage | 15,000 RPM, server-grade |
-| SSD | Storage | No moving parts, fastest |
-| OPcache | PHP | Built-in opcode cache since PHP 5.5 |
-| BIND | DNS Server | Popular authoritative DNS, supports multiple A records |
-| NFS | Filesystem | Network File System, shared storage |
-| VRRP / Keepalived | HA Protocol | Virtual IP failover for LB pairs |
-| AWS EC2 | IaaS | Virtual machines, pay-per-minute |
-| AWS Route 53 | DNS | Geo, latency, health-check-based routing |
+| Technology     | Category     | Notes                                                              |
+|----------------|--------------|--------------------------------------------------------------------|
+| Apache / Nginx | Web Server   | Apache multi-process; Nginx event-driven, better under concurrency |
+| HAProxy        | Software LB  | Free, TCP + HTTP, highly configurable                              |
+| AWS ELB / ALB  | Managed LB   | Application Load Balancer = L7; NLB = L4                           |
+| Memcached      | Cache        | In-memory KV store, LRU eviction, volatile                         |
+| Redis          | Cache + Store| Persistent options, rich data types                                |
+| MySQL InnoDB   | RDBMS        | ACID, row-level locking, default engine                            |
+| MySQL MyISAM   | RDBMS        | No transactions, table-level locks                                 |
+| MySQL MEMORY   | RDBMS        | RAM-only, volatile, fast                                           |
+| MySQL Archive  | RDBMS        | Compressed, write-heavy log storage                                |
+| MySQL NDB      |Clustered RDBMS| Distributed, in-memory, HA                                        |
+| RAID 0         | Storage       | Striping, performance                                             |
+| RAID 1         | Storage       | Mirroring, redundancy                                             |
+| RAID 5         | Storage       | Striping + parity, 1-drive fault tolerance                        |
+| RAID 6         | Storage       | Striping + double parity, 2-drive fault tolerance                 |
+| RAID 10        | Storage       | Striping + mirroring, performance + redundancy                    |
+| SAS drives     | Storage       | 15,000 RPM, server-grade                                          |
+| SSD            | Storage       | No moving parts, fastest                                          |
+| OPcache        | PHP           | Built-in opcode cache since PHP 5.5                               |
+| BIND           | DNS Server    | Popular authoritative DNS, supports multiple A records            |
+| NFS            | Filesystem    | Network File System, shared storage                               |
+|VRRP / Keepalived| HA Protocol  | Virtual IP failover for LB pairs                                  |
+| AWS EC2         | IaaS         | Virtual machines, pay-per-minute                                  |
+| AWS Route 53    | DNS          | Geo, latency, health-check-based routing                          |
 
 ---
 
