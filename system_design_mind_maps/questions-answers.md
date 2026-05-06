@@ -436,3 +436,608 @@
         --filename=test_file --bs=4k --iodepth=64 --size=4G --readwrite=randrw --rwmixread=75
     When moving from a VPS to Bare Metal for high I/O tasks, you trade the convenience of cloud-native features (like instant scaling and automated snapshots) for maximum, predictable hardware performance.
 
+# Quest-6.
+# 📘 System Availability, Reliability & Design — Mind Map
+
+## 🧠 Core Concept: Availability Formula (Parallel Systems)
+- 📌 Formula
+  - A_Total = 1 - (1 - A_Foo) × (1 - A_Bar)
+
+---
+
+## 🔍 Where This Formula Comes From
+- Derived from:
+  - Probability Theory
+    - Independent events
+    - Parallel system reliability modeling
+
+- 🧩 Key Idea
+  - Parallel system fails only if:
+    - ALL components fail simultaneously
+
+---
+
+## 🧩 Step-by-Step Derivation
+
+### 1. Define Availability & Unavailability
+- Availability:
+  - A = P(system is working)
+
+- Unavailability:
+  - U = 1 - A
+
+---
+
+### 2. Individual Component Unavailability
+- Foo:
+  - U_Foo = 1 - A_Foo
+
+- Bar:
+  - U_Bar = 1 - A_Bar
+
+---
+
+### 3. Total Unavailability (Parallel System)
+- For independent components:
+  - U_Total = U_Foo × U_Bar
+
+- Substitute:
+  - U_Total = (1 - A_Foo) × (1 - A_Bar)
+
+---
+
+### 4. Convert Back to Availability
+- A_Total = 1 - U_Total
+
+- Final:
+  - A_Total = 1 - (1 - A_Foo)(1 - A_Bar)
+
+---
+
+## ⚙️ Practical Interpretation
+- Redundancy:
+  - Reduces downtime exponentially
+- Failure Probability:
+  - Becomes very small
+
+---
+
+## 🔗 Serial vs Parallel Systems
+
+### 🔴 Serial System
+- Formula:
+  - A = A₁ × A₂
+- Impact:
+  - Availability decreases
+
+---
+
+### 🟢 Parallel System
+- Formula:
+  - A = 1 - (1 - A₁)(1 - A₂)
+- Impact:
+  - Availability increases
+
+---
+
+## 🏗️ System Design: Serial vs Parallel
+
+### 🔴 Serial System
+- All components must work
+- Any failure → system failure
+
+- Example:
+  - Load Balancer = 99%
+  - Server = 99%
+  - Database = 99%
+
+  - A = 0.99 × 0.99 × 0.99 = 97.03%
+
+---
+
+### 🟢 Parallel System (High Availability Design)
+- Logically serial flow
+- Internally parallel tiers
+
+---
+
+## 🧱 Typical HA Architecture
+
+### 1. Load Balancer Tier
+- Managed service (e.g., AWS ALB)
+- Built-in redundancy across zones
+
+---
+
+### 2. Server Tier
+- Multiple servers in parallel
+- Load balancer handles:
+  - Health checks
+  - Traffic routing
+
+---
+
+### 3. Database Tier
+- Primary + Secondary (failover)
+- Examples:
+  - AWS RDS Multi-AZ
+  - Azure SQL Failover
+
+---
+
+## 🧮 How to Calculate Total Availability
+
+### Step 1: Solve Parallel Groups
+- Formula:
+  - A = 1 - (1 - A)^n
+
+- Example:
+  - 2 servers @ 99%
+  - A = 1 - (0.01 × 0.01) = 99.99%
+
+---
+
+### Step 2: Chain Serial Layers
+- A_Total = A_LB × A_Servers × A_DB
+
+---
+
+## 📊 Example Calculation
+
+- Load Balancer: 99.99%
+- Servers (2x 99%): 99.99%
+- Database (2x 99.9%): 99.9999%
+
+- Final:
+  - A_Total ≈ 0.9999 × 0.9999 × 0.999999 ≈ 99.98%
+
+---
+
+## 📍 Where Do These Numbers Come From?
+
+### 1. Cloud Providers (SLA)
+- AWS SLA
+- Azure SLA
+- Google Cloud SLA
+
+---
+
+### 2. Hardware Specs
+- Formula:
+  - Availability = MTBF / (MTBF + MTTR)
+
+- MTBF:
+  - Mean Time Between Failure
+
+- MTTR:
+  - Mean Time To Repair
+
+---
+
+### 3. Software / SaaS
+- Status pages
+- Uptime guarantees
+
+---
+
+## 📊 Typical SLA Reference
+
+- Compute:
+  - 99.5% → 99.99%
+- Database:
+  - 99.5% → 99.95–99.99%
+- NoSQL:
+  - 99.99% → 99.999%
+- Storage:
+  - 99.9% → 99.99%
+- Load Balancer:
+  - 99.99%
+
+---
+
+## 🧮 Strategy: Group Then Chain
+
+### ✔ Step 1: Parallel Grouping
+- A = 1 - (1 - A)^n
+
+### ✔ Step 2: Serial Multiplication
+- A_Total = A₁ × A₂ × A₃
+
+---
+
+## 📉 Understanding "Nines"
+
+- 99.9% → ~43 minutes downtime/month
+- 99.99% → ~4.3 minutes
+- 99.999% → ~26 seconds
+
+---
+
+## 🧠 Key Takeaways
+
+- Systems:
+  - Logically serial
+  - Physically parallel
+
+- Use:
+  - Multiplication → Serial
+  - Complement probability → Parallel
+
+- Goal:
+  - Remove single points of failure
+
+- Rule:
+  - Parallel first → then Serial
+
+# Flow: Availability Calculation Strategy
+
+            START
+              |
+              v
+     Identify Components
+              |
+              v
+   Are components parallel?
+         /        \
+       YES        NO
+       |           |
+       v           v
+Use Parallel    Use Serial
+ Formula         Formula
+A = 1-(1-A)^n    A = A₁×A₂
+       |           |
+       v           v
+   Group Results (Tier Level)
+              |
+              v
+   Multiply Across Layers
+              |
+              v
+        Final Availability
+              |
+              v
+             END
+
+# Quest-7.
+    ## Answer:
+        Here’s a structured walkthrough of everything you asked, based on the Microsoft DNS Architecture article and related standards.
+
+        ***
+
+        ### 1. RFCs: what they are and why they matter
+
+        ### What is an RFC?
+
+        - **RFC (Request for Comments)** is the main publication series used by the IETF and related bodies to describe internet protocols, formats, and practices.  
+        - Each RFC is a numbered document; some are **Standards Track** (e.g., DNS), others are informational or experimental.
+
+        ### Why RFCs exist (reason for introduction)
+
+        - Early ARPANET / Internet protocols were ad‑hoc; RFCs were created as a **shared, public specification** so independent implementations could interoperate.  
+        - For DNS, the first specs were **RFC 882 and 883**, later superseded by **RFC 1034 (Concepts and Facilities)** and **RFC 1035 (Implementation and Specification)**.
+
+        ### Significance for DNS / Microsoft DNS
+
+        - RFCs 1034 and 1035 define:
+        - The **DNS data model** (zones, names, resource records).
+        - The **protocol** (message format, queries, responses, zone transfer).
+        - Windows Server 2008 DNS explicitly cites these RFCs and additional ones it implements: **1034, 1035, 1886, 1996, 1995, 2136, 2308, 2052**.
+        - 1886 – IPv6 AAAA records  
+        - 1995 – Incremental Zone Transfer (IXFR)  
+        - 1996 – DNS NOTIFY  
+        - 2136 – Dynamic Updates  
+        - 2308 – Negative Caching  
+        - 2052 – SRV records (service location)
+
+        ### “Implementation” angle
+
+        - The RFCs are **specs**, not code.  
+        - Implementations (BIND, Microsoft DNS, Unbound, PowerDNS, etc.) read and implement:
+        - Message formats.
+        - RR types and semantics.
+        - Zone transfer mechanisms.
+        - Dynamic update semantics.  
+        - Microsoft DNS server in Windows NT 4.0 and Windows Server 2008 is described as “having its roots in RFC 1034 and 1035”, and adds support for later RFCs as listed.
+
+        ***
+
+        ## 2. BIND vs Microsoft DNS in Windows NT Server 4.0
+
+        ### BIND (Berkeley Internet Name Domain)
+
+        - Origin: Developed for **4.3 BSD UNIX**.  
+        - Role:
+        - The **reference implementation** of DNS on early Unix systems.
+        - Widely deployed on the public internet; many examples and admin habits are BIND‑centric.  
+        - Characteristics:
+        - Text zone files.
+        - Primary/secondary zones, AXFR/IXFR.
+        - Strong alignment with the DNS RFCs; later versions add DNSSEC, views, etc.
+
+        ### Microsoft DNS (Windows NT Server 4.0)
+
+        From the article:
+
+        - “The Microsoft implementation of DNS became a part of the operating system in **Windows NT Server 4.0**.”  
+        - It is also based on **RFC 1034 and 1035**, just like BIND.
+
+        Key differences (90s / early‑2000s):
+
+        - **Platform integration**
+        - BIND: classic Unix daemon, managed via config files.
+        - Microsoft DNS:
+            - Integrated into Windows Server.
+            - GUI mgmt tools, integration with **Active Directory** in later versions (AD‑integrated zones).
+        - **Zone storage**
+        - BIND: zone files on disk.
+        - Microsoft DNS: can store zones in **AD** (multi‑master replication) or as file‑based primary/secondary zones.
+        - **Feature alignment**
+        - Older BIND versions supported only AXFR, later IXFR.
+        - Windows NT 4.0 DNS: AXFR only; Windows 2000/2003/2008 add IXFR, NOTIFY, dynamic updates per RFCs 1995/1996/2136/2052/2308.
+
+        In short: BIND was the original, Unix‑native implementation; Microsoft DNS implemented the same RFC model, but integrated it into the Windows server and later Active Directory world.
+
+        ***
+
+        ## 3. Current DNS server implementations (high‑level view)
+
+        Today, in 2026, common DNS server implementations include:
+
+        - **BIND** (still widely used in ISPs, enterprises).  
+        - **Knot DNS**, **NSD**, **PowerDNS**, **Unbound** (authoritative/recursive roles depending on product).  
+        - **Microsoft DNS**:
+        - Part of Windows Server roles (though Microsoft now focuses more on Azure DNS in cloud scenarios).
+        - **Cloud DNS services**:
+        - **Cloudflare DNS, Google Cloud DNS, Amazon Route 53, Azure DNS**.
+        - These are managed services implementing the DNS protocol at large scale, often with Anycast, DNSSEC, advanced traffic steering.
+
+        Conceptually, they all implement:
+
+        - The **same DNS protocol and data model** from RFCs 1034/1035, plus newer RFCs.  
+        - Authoritative and/or recursive behavior (some split across components).
+
+        The Microsoft documentation you linked still describes the **core architecture** that current Microsoft DNS server uses: zones, SOA, NS, A, MX, CNAME, zone transfer, delegation, etc.
+
+        ***
+
+        ## 4. “Microsoft is assigned authority by the root servers” – what does that mean?
+
+        From the article’s DNS tree discussion:
+
+        > “This figure shows how **Microsoft is assigned authority by the Internet root servers for its own part of the DNS domain namespace tree on the Internet**.”
+
+        ### What this actually means
+
+        - The **root zone** (.) contains NS records for top‑level domains (TLDs), such as `.com`.  
+        - The `.com` zone (managed by a registry, e.g., Verisign) contains NS records for **microsoft.com.**.  
+        - So, the root + `.com` infrastructure delegates **“microsoft.com.”** and sub‑tree to name servers operated by or for Microsoft.
+
+        This tells the **global DNS system**: “For any name under `microsoft.com.`, go ask Microsoft’s authoritative name servers.”
+
+        ### Does Microsoft “have its own DNS server” separate from DNS?
+
+        No – Microsoft’s authoritative servers are **DNS servers** implementing the standard protocol, just like others:
+
+        - They are part of the global DNS system:  
+        - Root → `.com` → `microsoft.com.` → Microsoft’s authoritative servers.  
+        - Internally, Microsoft may:
+        - Use **Microsoft DNS** for internal zones (AD‑integrated, corporate networks).
+        - Use a mixture of hosted and on‑prem authoritative servers for `microsoft.com` on the public internet.
+
+        So:
+
+        - Microsoft does **not** run some alternate naming system; it participates in **standard DNS**.  
+        - Its “part of the namespace” (e.g., `microsoft.com.` and subdomains) is managed via **authoritative DNS servers** that follow normal DNS protocols and can be queried by any resolver on the internet.
+
+        ***
+
+        ## 5. International Standard 3166 (ISO 3166) and DNS TLDs
+
+        The article states:
+
+        > “The Internet Domain Name System is managed by a Name Registration Authority … These domain names follow the **International Standard 3166**.”
+
+        - **ISO 3166** is the international standard that defines **country/region codes**, like:
+        - `US`, `IN`, `FR`, `DE`, `AU`, etc.  
+        - DNS uses these 2‑letter codes as **country‑code top‑level domains (ccTLDs)**:
+        - `.us`, `.in`, `.fr`, `.de`, `.au`, etc.
+        - The table of TLDs in the article shows:
+        - Generic TLDs: `.com`, `.edu`, `.org`, `.net`, `.gov`, `.mil`, `.arpa`.  
+        - `“xx”` as placeholder for country codes (e.g., `us`, `au`, `ca`, `fr`).
+
+        So ISO 3166’s primary impact on DNS is: it standardizes the 2‑letter country codes that are used to define **ccTLDs**.
+
+        ***
+
+        ## 6. Resource Records table – “unraveling” the structure
+
+        The “Common DNS resource records” table defines how typical records are structured.
+
+        ### Common fields in all RRs
+
+        Each **Resource Record (RR)** has:
+
+        - **Owner name** – the DNS name the record is about (e.g., `www.example.com.`).  
+        - **Class** – usually `IN` (Internet).  
+        - **TTL (Time To Live)** – how long other DNS servers/clients may cache this record.  
+        - **Type** – what kind of record (SOA, A, NS, MX, CNAME, etc.).  
+        - **Data (RDATA)** – type‑specific payload.
+
+        ### SOA – Start of Authority
+
+        From the table:
+
+        - **Class:** IN  
+        - **TTL:** typically the “default zone TTL” (e.g., 60 minutes).  
+        - **Type:** `SOA`  
+        - **Data fields:**
+        - **Owner Name:** the zone name (e.g., `example.com.`).  
+        - **Primary Name Server DNS Name:** the authoritative primary server for this zone.  
+        - **Serial Number:** incremented whenever zone content changes (used by secondary servers to detect updates).  
+        - **Refresh Interval:** how often secondaries should check with the primary.  
+        - **Retry Interval:** how long a secondary waits before retrying after a failed refresh.  
+        - **Expire Time:** how long a secondary can keep serving data without contact; after this it stops answering authoritatively.  
+        - **Minimum TTL:** historically the default TTL for negative answers; in practice used as a general “default TTL” in many implementations.
+
+        ### A – Host (IPv4 address)
+
+        - **Class:** IN  
+        - **TTL:** specific or inherited from SOA.  
+        - **Type:** `A`  
+        - **Data:**
+        - **Owner Name:** host name (e.g., `www.example.com.`).  
+        - **Host IP Address:** IPv4 address (e.g., `192.0.2.10`).
+
+        This maps a hostname to an IPv4 address.
+
+        ### NS – Name Server
+
+        - **Class:** IN  
+        - **TTL:** specific or inherited.  
+        - **Type:** `NS`  
+        - **Data:**
+        - **Owner Name:** the domain name whose authority is described (e.g., `example.com.`).  
+        - **Name Server DNS Name:** the host name of an authoritative DNS server (e.g., `ns1.example.com.`).
+
+        This record says: “`ns1.example.com.` is an authoritative server for `example.com.`”.
+
+        ### MX – Mail Exchanger
+
+        - **Class:** IN  
+        - **TTL:** specific or inherited.  
+        - **Type:** `MX`  
+        - **Data:**
+        - **Owner Name:** the domain for which mail is handled (e.g., `example.com.`).  
+        - **Mail Exchange Server DNS Name:** hostname of the mail server (e.g., `mail.example.com.`).  
+        - **Preference Number:** priority; lowest value is tried first.
+
+        This tells mail senders where to deliver mail for `@example.com`.
+
+        ### CNAME – Canonical Name (alias)
+
+        - **Class:** IN  
+        - **TTL:** specific or inherited.  
+        - **Type:** `CNAME`  
+        - **Data:**
+        - **Owner Name:** alias name (e.g., `ftp.example.com.`).  
+        - **Host DNS Name:** canonical name (e.g., `server1.example.com.`).
+
+        Resolver semantics: when you see a `CNAME`, you follow it and perform another lookup on the canonical name.
+
+        ***
+
+        ## 7. Distributing the DNS Database: Zone Files and Delegation
+
+        This is the heart of how DNS **scales and decentralizes**.
+
+        ### 7.1 Zones and zone files
+
+        - A **zone** is a *contiguous portion* of the DNS namespace that a particular server is responsible for.  
+        - A **zone file** is the stored representation of that zone (on disk or in AD).  
+        - A single DNS server can host:
+        - Zero, one, or multiple zones.
+
+        Key points from the article:
+
+        - Each zone is anchored at a **zone root domain** (e.g., `microsoft.com.`).  
+        - The zone contains information about **all names that end with that root domain**, unless delegated.  
+        - The **first record** in any zone file is an **SOA** RR, which:
+        - Identifies the **primary DNS server** for that zone (where updates originate).
+        - Holds the serial and timing values for secondary zone replication.
+
+        A server is **authoritative** for any name that’s within a zone it loads.
+
+        ### 7.2 Delegation – splitting the namespace
+
+        Delegation lets you split responsibility:
+
+        - A name within one zone can be **delegated** to another zone hosted elsewhere.  
+        - Delegation is represented by **NS records** that:
+        - Appear in the parent zone.
+        - Point to the authoritative servers for the child zone.
+
+        Example from the text:
+
+        - `microsoft.com.` is managed, but you can create a subdomain `mydomain.microsoft.com.` as a separate zone.  
+        - The parent zone `microsoft.com.`:
+        - Contains NS records for `mydomain.microsoft.com.` specifying the child’s DNS servers.
+        - The child zone `mydomain.microsoft.com.`:
+        - Has its own SOA, NS, and other RRs.
+
+        So when a resolver asks for `host.mydomain.microsoft.com.`:
+
+        - The DNS resolution process:
+        1. Follows the parent zone (`microsoft.com.`).
+        2. Sees an NS delegation for `mydomain.microsoft.com.`.
+        3. Contacts the child zone’s DNS server(s) listed in those NS records.
+
+        ### 7.3 Why delegate?
+
+        The article lists reasons:
+
+        1. **Administrative delegation**
+        - Different departments, subsidiaries, or organizations manage their own subdomains.
+
+        2. **Load distribution & fault tolerance**
+        - Split a large DNS database across multiple servers.
+        - Improve performance and reduce single‑server load.
+
+        3. **Reflecting organizational structure**
+        - Domain names can mirror departments, geographies, or services.
+
+        The key concept: *delegation was part of DNS’s original design goal* to allow a **hierarchical, distributed naming system**.
+
+        ### 7.4 NS records and delegation behavior
+
+        - NS records appear **in every zone** to identify authoritative servers.  
+        - When a DNS server needs to “cross a delegation”:
+        - It looks at NS records for that child zone.
+        - It queries one of those servers to continue resolution.
+        - Windows Server 2008’s DNS stack:
+        - If there are multiple NS records, it keeps **round‑trip time (RTT)** measurements.
+        - Over time, it will prefer the server with the **lowest RTT** (closest) when multiple choices exist.
+
+        ***
+
+        ## 8. Abbreviations Used
+
+        - **AD** – Active Directory  
+        - **AXFR** – Full Zone Transfer  
+        - **BIND** – Berkeley Internet Name Domain  
+        - **CNAME** – Canonical Name (RR type)  
+        - **DNS** – Domain Name System  
+        - **FQDN** – Fully Qualified Domain Name  
+        - **IN** – Internet (DNS class)  
+        - **ISO** – International Organization for Standardization  
+        - **IXFR** – Incremental Zone Transfer  
+        - **MX** – Mail Exchanger (RR type)  
+        - **NS** – Name Server (RR type)  
+        - **RR** – Resource Record  
+        - **RFC** – Request for Comments  
+        - **SOA** – Start of Authority (RR type)  
+        - **TLD** – Top‑Level Domain  
+        - **TTL** – Time To Live (caching lifetime)
+
+        ***
+
+        ## 9. References
+
+        - Microsoft – DNS Architecture (Windows Server 2008):  
+        https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/dd197427(v=ws.10)  
+
+        - DNS foundational RFCs:  
+        RFC 1034 – Domain Names: Concepts and Facilities  
+        RFC 1035 – Domain Names: Implementation and Specification  
+
+        - Additional DNS-related RFCs mentioned by Microsoft DNS:  
+        RFC 1886 (IPv6 AAAA)  
+        RFC 1995 (Incremental Zone Transfer, IXFR)  
+        RFC 1996 (DNS NOTIFY)  
+        RFC 2052 (SRV records)  
+        RFC 2136 (Dynamic Updates)  
+        RFC 2308 (Negative Caching)
+
+        ***
+
+        To check your understanding: can you explain, in your own words, **how NS records in the parent zone plus a child zone’s own SOA/NS let Microsoft delegate `mydomain.microsoft.com` to a different admin team** while keeping everything standard DNS?
+
