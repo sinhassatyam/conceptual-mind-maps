@@ -1040,4 +1040,38 @@ A = 1-(1-A)^n    A = A₁×A₂
         ***
 
         To check your understanding: can you explain, in your own words, **how NS records in the parent zone plus a child zone’s own SOA/NS let Microsoft delegate `mydomain.microsoft.com` to a different admin team** while keeping everything standard DNS?
+# Quest-8. CDN Architecture and Consistent Hashing Case Study
+
+  ## ❓ Question
+  How does consistent hashing determine which specific servers at an edge site store particular customer objects, and can this architecture scale to cross-CDN/cross-site retrieval (e.g., routing a request from `CDN-Bengaluru` to fetch an asset cached at `CDN-Mumbai` without duplicating storage or hitting the origin server at `Kolkata`)? Furthermore, does this local "Likely" server mechanic suggest that global CDNs like Akamai utilize hierarchical tiered caching, peer caching, or inter-cluster cache sharing?
+
+  ---
+
+  ## 💡 Answer
+
+  ### 1. Local Mechanics: The Hash Ring and the "Likely" Server
+  Consistent hashing maps both servers and data objects to a circular numeric space (a hash ring ranging from `0` to `2^32 - 1`). 
+
+  * **The Mapping:** Inside a single CDN edge site (e.g., London), servers (`Edge-1` to `Edge-4`) are placed on the ring based on the hash of their system IDs. Customer objects (e.g., video URLs) are hashed using their file path/ID and placed on the same ring.
+  * **The Assignment:** An object is assigned to the **first server encountered moving clockwise** from the object's hash position. This server is designated as the **"Likely"** server to hold that cache.
+  * **Flash Crowds & Failover:** If a file becomes viral, all requests map to the exact same "Likely" server, insulating the origin server from redundant fetches. If that specific edge server crashes, only its assigned objects shift clockwise to the next available server on the ring; all other servers remain unaffected.
+
+  ### 2. Scaling Cross-CDN: Zero-Storage Inter-Site Routing
+  This exact mathematical concept scales seamlessly from individual servers to a **global/regional network of entire data centers**. Instead of hashing individual machines, entire edge sites (`CDN-Mumbai`, `CDN-Bengaluru`, `CDN-Vishakapatnam`) are mapped onto a macro-level regional hash ring.
+
+  * **Scenario Execution:**
+    1. A video asset hashes to a position on the regional ring where **CDN-Mumbai** is the clockwise neighbor. Mumbai becomes the globally designated "Likely" site for this asset and caches it from the origin (`Server-Kolkata`).
+    2. A user in Bengaluru requests the same video, hitting **CDN-Bengaluru**. 
+    3. Bengaluru suffers a local cache miss. Instead of querying the origin in Kolkata, it runs the regional consistent hashing algorithm, identifying Mumbai as the designated holder.
+    4. Bengaluru establishes an internal connection to Mumbai, streaming the video chunks directly to the user **without writing the asset to its own local storage**.
+
+  This reduces storage footprints and origin load, trading off a slight increase in inter-site transit latency for lower-demand assets.
+
+  ### 3. Real-World Application: Akamai's Hierarchical Tiered Caching
+  The foundational math of consistent hashing—co-invented by Akamai’s founders—directly underpins and confirms their use of **Hierarchical Tiered Caching** and **Inter-Cluster Cache Sharing**. Akamai implements this via two core features:
+
+  * **Tiered Distribution (Hierarchical Caching):** Akamai arranges its rings into a tree structure. Smaller edge rings (`CDN-Bengaluru`) roll up to a centralized, inner ring of "Parent Caches" (`CDN-Mumbai`). Edge misses are hashed directly to a designated parent server rather than traversing back to the customer's origin.
+  * **Querying Peers (Inter-Cluster Sharing):** Geographically close edge sites leverage a shared virtual hash space. Proxies use consistent hashing to check if a neighboring sister cluster is the mathematical owner of an asset hash, fetching it horizontally across the peer mesh when necessary.
+  * **The Popularity Threshold (Dynamic Optimization):** In production, if an asset streamed from Mumbai to Bengaluru suddenly spikes in local popularity, the system dynamically promotes it—caching it locally in Bengaluru to protect network bandwidth and optimize end-user delivery speed.
+
 

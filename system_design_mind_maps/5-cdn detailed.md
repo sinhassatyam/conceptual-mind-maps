@@ -134,7 +134,8 @@ Akamai directs each client request to a server that is:
   - Server load (CPU, disk, network).  
   - Data center bandwidth capacity.  
 - **Likely** – likely to have the requested content:
-  - Based on which servers at a site store which customers’ objects (via **consistent hashing**). 
+  - Based on which servers at a site store which customers’ objects (via **consistent hashing**).
+  - Cross-CDN, Hierarchical Caching, Inter-Cluster sharing, Dynamic Optimization.
 
 If any dimension is bad (e.g., high load, network congestion, server down), that server is avoided.
 
