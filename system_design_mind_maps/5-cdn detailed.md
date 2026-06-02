@@ -150,7 +150,7 @@ Akamai uses a **dynamic, fault‑tolerant DNS system** to translate hostnames in
 Mapping process:
 
 1. Client resolves an Akamai hostname (e.g., `a7.g.akamai.net`) using standard DNS.  
-2. Akamai’s **top‑level DNS (TLD NS)** and **low‑level DNS** participate in resolution.  
+2. Akamai’s **top‑level DNS (TL DNS)** and **low‑level DNS** participate in resolution.  
 3. Mapping logic decides which set of edge servers (IP addresses) to return, based on:
    - Service type, server health, load, network conditions, client location, and content distribution. 
 
@@ -167,7 +167,7 @@ A typical resolution proceeds like this:
    They return delegation (NS) for `.akamai.net` (Akamai top‑level DNS).
 
 3. **Akamai top‑level DNS**  
-   Resolver queries Akamai TLD NS, which returns delegation for `.g.akamai.net` to some **low‑level Akamai name servers**, with TTL ≈ 1 hour.  
+   Resolver queries Akamai TL-DNS, which returns delegation for `.g.akamai.net` to some **low‑level Akamai name servers**, with TTL ≈ 1 hour.  
    The selected low‑level NS are **co‑located** with candidate edge servers near the user. 
 
 4. **Akamai low‑level DNS**  
@@ -189,7 +189,7 @@ To define “nearest” and understand topology:
 
 - Akamai agents peer with certain **border routers** and receive **BGP** updates (autonomous system paths). 
 - BGP gives a coarse notion of network distance (AS hops).  
-- Akamai combines BGP info with active measurements like **traceroute** to build a **dynamic map of Internet structure and link quality**. 
+- Akamai combines BGP info with active measurements like **trace-route** to build a **dynamic map of Internet structure and link quality**. 
 
 This dynamic map feeds the mapping system, which updates mappings every few seconds while avoiding excessive DNS overhead. 
 
@@ -333,7 +333,7 @@ Sources of failure:
 
 - Hardware aging (especially disks).  
 - Network problems (routers, switches).  
-- Software bugs and protocol changes (new headers in browsers, servers). [ppl-ai-file-upload.s3.amazonaws]
+- Software bugs and protocol changes (new headers in browsers, servers).
 
 Approaches:
 
@@ -342,13 +342,13 @@ Approaches:
   - Multiple DNS servers; top‑level DNS ensures clients can find a live DNS server.  
 - DNS returns **multiple IP addresses** for a name:
   - Clients can try another IP if the first fails.  
-  - Live servers at a site can adopt the IP of a failed server. [ppl-ai-file-upload.s3.amazonaws]
+  - Live servers at a site can adopt the IP of a failed server.
 - Avoid single points of failure:
   - Replicate monitoring and control logic.  
-  - Multiple DNS sites and TLD/low‑level hierarchies. [ppl-ai-file-upload.s3.amazonaws]
+  - Multiple DNS sites and TLD/low‑level hierarchies.
 - Testing new software:
   - Special test tools mirror live traffic to a **test version** of software (shadow traffic).  
-  - Find issues before rolling to production. [ppl-ai-file-upload.s3.amazonaws]
+  - Find issues before rolling to production.
 
 ### 8.3 Software deployment and platform management
 
@@ -356,13 +356,13 @@ Reality:
 
 - You cannot update all edge servers atomically.  
 - Different servers/networks may be unreachable at different times.  
-- Often **two software versions coexist** live. [ppl-ai-file-upload.s3.amazonaws]
+- Often **two software versions coexist** live.
 
 Implications:
 
 - Components must be designed so that **different versions interoperate** safely.  
 - Network ops must identify and suspend misconfigured servers.  
-- Akamai runs both **Linux and Windows** on edge servers; tools must work across platforms. [ppl-ai-file-upload.s3.amazonaws]
+- Akamai runs both **Linux and Windows** on edge servers; tools must work across platforms - platform independent tools.
 
 ### 8.4 Content visibility and control
 
@@ -375,7 +375,7 @@ Key requirements:
   - Content integrity.  
 - Providers need visibility:
   - Detailed logs and statistics.  
-  - Real‑time and historical views of traffic. [ppl-ai-file-upload.s3.amazonaws]
+  - Real‑time and historical views of traffic.
 
 Mechanisms:
 
@@ -384,78 +384,78 @@ Mechanisms:
      - Some objects cache forever (until explicitly purged).  
      - Others have finite TTL; edge revalidates or refetches.  
    - Versioned URLs:
-     - Embedding version/generation in URL or query string; new version → new URL; older versions cached long‑term. [ppl-ai-file-upload.s3.amazonaws]
+     - Embedding version/generation in URL or query string; new version → new URL; older versions cached long‑term.
 
 2. **Performance for uncacheable content**
    - Edge servers sit between client and origin, **splitting TCP connections**:
      - Edge can react quickly to packet loss, improving effective throughput.  
      - Edge can absorb origin’s response quickly and stream it to client at client pace.  
-     - Edge keeps long‑lived connections to client; origin maintains fewer connections to fewer edge servers. [ppl-ai-file-upload.s3.amazonaws]
+     - Edge keeps long‑lived connections to client; origin maintains fewer connections to fewer edge servers.
 
 3. **On‑demand purge (lifetime control)**
    - Edge servers support **on‑demand invalidation** of objects across the network:
      - Via customer requests or publishing system integration.  
-   - Essential because most objects change infrequently, but some must be removed immediately upon update or policy changes. [ppl-ai-file-upload.s3.amazonaws]
+   - Essential because most objects change infrequently, but some must be removed immediately upon update or policy changes.
 
 4. **Authentication and authorization**
    - Two models:
      - Edge passes request headers to origin so origin can authorize each request.  
      - Edge processes **authorization tokens** issued by origin (no round trip for every request).  
-   - Edge ensures that failed authorization does **not** purge or corrupt stored protected content. [ppl-ai-file-upload.s3.amazonaws]
+   - Edge ensures that failed authorization does **not** purge or corrupt stored protected content.
 
 5. **Integrity control**
    - Edge must:
      - Serve correct responses (no mix‑up between customers).  
      - Detect incomplete or corrupted origin responses and avoid caching them.  
      - Detect disk corruption of cached objects and refetch.  
-   - Akamai adds **content integrity checks** before serving each block of a response to ensure correct association between request and bytes. [ppl-ai-file-upload.s3.amazonaws]
+   - Akamai adds **content integrity checks** before serving each block of a response to ensure correct association between request and bytes.
 
 6. **Visibility (logs and billing)**
    - Edge servers log each request.  
    - Logs are aggregated:
      - For customer‑specific reporting.  
      - For billing (large volume of data, must be reduced to monthly summaries).  
-   - Real‑time analytics focus on rates and geographic distribution rather than full detailed logs. [ppl-ai-file-upload.s3.amazonaws]
+   - Real‑time analytics focus on rates and geographic distribution rather than full detailed logs.
 
 ***
 
 ## 9. Relation to Other Distributed/Fault‑Tolerant Systems
 
-The authors explicitly connect Akamai’s design to broader distributed systems research. [ppl-ai-file-upload.s3.amazonaws]
+The authors explicitly connect Akamai’s design to broader distributed systems research.
 
 Key points:
 
 - Many Internet subsystems are **decentralized** (routing, DNS, email, web).  
 - Akamai uses a **logically centralized but physically distributed** control layer:
   - Central logic for mapping and management.  
-  - Replicated control components and edge nodes. [ppl-ai-file-upload.s3.amazonaws]
+  - Replicated control components and edge nodes.
 
 References in the side‑bar:
 
-- **Autonet** – example of centralized route recomputation on topology changes. [ppl-ai-file-upload.s3.amazonaws]
+- **Autonet** – example of centralized route recomputation on topology changes.
 - Classic work on **distributed databases**, **distributed file systems**, and **caches**.  
 - Web caches historically had limited impact due to:
   - Mostly read‑only web but high rate of change.  
-  - Lack of coordination between caches and data sources. [ppl-ai-file-upload.s3.amazonaws]
-- Depot and other update‑management tools for large distributed software deployments; Akamai takes similar goals but uses its **own network plus public‑key mechanisms** for software distribution. [ppl-ai-file-upload.s3.amazonaws]
+  - Lack of coordination between caches and data sources.
+- Depot and other update‑management tools for large distributed software deployments; Akamai takes similar goals but uses its **own network plus public‑key mechanisms** for software distribution.
 
 ***
 
 ## 10. Edge Computing: Future Direction
 
-The paper ends by foreshadowing **edge applications** beyond content delivery. [ppl-ai-file-upload.s3.amazonaws]
+The paper ends by foreshadowing **edge applications** beyond content delivery.
 
 Key ideas:
 
 - Running applications at the edge has similar benefits to content delivery:
   - Capacity on demand.  
   - Shared infrastructure.  
-  - Reduced latency (less long‑distance communication). [ppl-ai-file-upload.s3.amazonaws]
+  - Reduced latency (less long‑distance communication).
 - New challenges:
   - Visibility into application behavior when app instances are moving between machines.  
   - Sandbox isolation to prevent apps from interfering.  
   - Distributed data for these apps (not just static content).  
-  - Identifying **practical design patterns** rather than solving the “general case” (which is often impossible). [ppl-ai-file-upload.s3.amazonaws]
+  - Identifying **practical design patterns** rather than solving the “general case” (which is often impossible).
 
 This is essentially an early articulation of what we now call **edge computing / serverless at the edge**.
 
