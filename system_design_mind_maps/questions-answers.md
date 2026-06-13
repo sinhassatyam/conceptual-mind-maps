@@ -1074,4 +1074,74 @@ A = 1-(1-A)^n    A = A₁×A₂
   * **Querying Peers (Inter-Cluster Sharing):** Geographically close edge sites leverage a shared virtual hash space. Proxies use consistent hashing to check if a neighboring sister cluster is the mathematical owner of an asset hash, fetching it horizontally across the peer mesh when necessary.
   * **The Popularity Threshold (Dynamic Optimization):** In production, if an asset streamed from Mumbai to Bengaluru suddenly spikes in local popularity, the system dynamically promotes it—caching it locally in Bengaluru to protect network bandwidth and optimize end-user delivery speed.
 
+# Quest-9. Explain East-West LB Traffic
+## Answer:
+  Based on the system design mind map provided, East-West traffic refers to the network traffic and communication that flows service-to-service internally within a data center, VPC, or across cloud regions.
+Unlike North-South traffic, which flows from the outside internet into your system (Client $\rightarrow$ External Edge Load Balancer $\rightarrow$ Web App), East-West traffic represents internal system components talking directly to each other.
+------------------------------
+###  🧱 Architectural Characteristics of East-West Traffic
 
+* The Communication Pattern: It happens entirely behind your outermost firewall. Examples include an API Gateway communicating with an authentication service, or a microservice querying an internal database or cache.
+* Infrastructure Layer: This traffic is typically handled using internal software load balancers (such as internal NGINX or HAProxy setups) or distributed service meshes (like Envoy or Linkerd).
+* Volume and Scaling: In microservice architectures, East-West traffic is usually vastly larger in volume than North-South traffic. A single incoming external request (North-South) often triggers dozens or hundreds of internal microservice calls (East-West) to assemble the final response.
+
+------------------------------
+### 📝 Concrete Examples of East-West Traffic Flow## Example 1: Standard E-Commerce Application
+
+   1. North-South Entry: A customer clicks "Checkout." The request enters the system from the internet through a public edge load balancer down to the Order-Service.
+   2. East-West Flow: The Order-Service must now orchestrate the transaction. It uses internal load balancers to route internal requests to:
+   * The Inventory-Service (to deduct item count).
+      * The Payment-Gateway-Proxy (to charge the card).
+      * The Notification-Service (to queue a confirmation email).
+      These side-to-side internal steps are all East-West traffic.
+   
+### Example 2: Cross-Region Microservice Call
+If you have an application deployed globally to prevent data loss or provide redundancy, service-to-service calls can span geographic locations:
+
+* A Reporting-Service running inside a data center in Bengaluru requires consolidated analytics logs.
+* It directly calls an internal Analytics-Database-Node located in Mumbai.
+* Because this connection occurs entirely inside a secured, private corporate network backbone (VPC peering / private cloud connections) rather than over the public internet, it is still classified as East-West traffic.
+
+------------------------------
+To help apply this concept to your project, let me know:
+
+* Are you planning an internal routing layout using a service mesh (like Envoy) or a centralized internal load balancer (like NGINX)?
+* Do you want to see how mutual TLS (mTLS) is handled differently for East-West traffic compared to edge TLS termination?
+
+# Quest-10. Explain frontend protocol: port & backend protocol: port from https://github.com/sinhassatyam/conceptual-mind-maps/blob/main/system_design_mind_maps/6-load_balancers.md#43-elastic-load-balancing-aws-classic-as-an-example 
+Based on the load balancers mind map, the concept of a frontend protocol:port and a backend protocol:port defines how a load balancer maps incoming internet traffic to internal server traffic.
+This mapping is managed by a Listener, which acts as the translation layer between the client and your servers.
+------------------------------
+## 🌐 1. Frontend (Protocol : Port)
+The frontend configuration dictates how clients on the internet talk to the load balancer. It opens a public-facing entryway using a specific networking rule (protocol) and a specific doorway number (port).
+
+* Protocol: Usually a secure public web standard like HTTPS or raw SSL/TCP.
+* Port: Standard internet ports like 443 (for secure web traffic) or 80 (for unencrypted traffic).
+* Example: HTTPS : 443 tells the load balancer to listen for secure, encrypted web browser requests from the outside world.
+
+## 🖥️ 2. Backend (Protocol : Port)
+The backend configuration dictates how the load balancer talks to your internal application servers (instances, pods, or targets).
+
+* Protocol: Often plain HTTP or raw TCP. Since this traffic travels over a secured, private internal cloud network (VPC), encryption is often stripped away to save computing power.
+* Port: The internal port where your application code is actively running (e.g., 8080 for a Java/Node.js app, or 80 for a local web server).
+* Example: HTTP : 8080 tells the load balancer to pass the decrypted traffic to your internal application cluster on port 8080.
+
+------------------------------
+## 🗺️ Common Production Architecture Examples
+
+| Scenario | Frontend (Client $\rightarrow$ LB) | Backend (LB $\rightarrow$ Servers) | Why use this setup? |
+|---|---|---|---|
+| SSL Termination (Most Common) | HTTPS : 443 | HTTP : 8080 | The load balancer decrypts the heavy SSL/TLS math at the edge, freeing up your app servers to process business logic faster. |
+| Legacy Web Traffic | HTTP : 80 | HTTP : 80 | Simple, unencrypted path. Used primarily for internal legacy systems or to catch port 80 requests and redirect them to HTTPS. |
+| Strict Security / End-to-End Encryption | HTTPS : 443 | HTTPS : 443 | Used in highly regulated industries (like banking). Traffic is decrypted at the load balancer for inspection, then re-encrypted before traveling to the server. |
+| Non-Web TCP Application | TCP : 6379 | TCP : 6379 | An L4 pass-through setup used for database or caching layers (like Redis), where the load balancer blindly forwards raw packets without looking inside. |
+
+------------------------------
+If you are writing infrastructure code, tell me:
+
+* Are you setting up this listener map via Terraform (AWS ALB/NLB) or an NGINX/HAProxy configuration file?
+* Do you want to see an example of how to handle Port Translation (e.g., mapping one frontend port to multiple varying backend container ports)?
+
+I can provide the configuration boilerplate you need!
+
+# Quest-11.
