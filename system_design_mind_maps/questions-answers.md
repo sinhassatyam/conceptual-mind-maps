@@ -1144,4 +1144,213 @@ If you are writing infrastructure code, tell me:
 
 I can provide the configuration boilerplate you need!
 
-# Quest-11.
+# Quest-11. Could L7 Load Balancer have L4 information like Source IP, Destination IP, Ports, Protocols to be used for intelligent routing, rate limiting and WAF integration?
+  Yes, an L7 load balancer has full access to all L4 layer information. [1] 
+Because the OSI networking model is a strict, vertical stack, a Layer 7 load balancer must fully terminate the Layer 4 connection (TCP/UDP) before it can even look inside the Layer 7 data (HTTP/HTTPS). This means the L7 load balancer natively possesses all L4 metrics (Source IP, Destination IP, Ports, and Protocols) and heavily relies on them for routing, rate limiting, and Web Application Firewall (WAF) operations. [2, 3, 4, 5, 6] 
+------------------------------
+## ⚙️ How L7 Uses L4 Data Across the Stack [7] ## 1. Intelligent Routing (L4 + L7 Fusion) [8] 
+An L7 load balancer combines L4 connection metrics with L7 application parameters to execute hyper-specific routing choices: [9] 
+
+* Port/Protocol to HTTP Header Mapping: It can route incoming traffic arriving on L4 Port 443 (HTTPS) to an internal payment service, while traffic arriving on L4 Port 80 (HTTP) is forcefully redirected via an L7 301 Moved Permanently response code. [10, 11] 
+* IP-Based Path Routing: It can look at the L4 Source IP to determine if a customer is inside a corporate office network, routing them to /admin, while blocking external public source IPs from accessing that same URL path.
+
+## 2. Advanced Rate Limiting
+Effective rate limiting balances the network layer and the application layer to block bad actors without crashing internal infrastructure:
+
+* L4 Source IP Throttling: The load balancer counts raw concurrent TCP connections coming from a single L4 Source IP. If it exceeds a threshold (e.g., 100 open connections), it drops the network packets directly at the boundary. [12] 
+* Hybrid Contextual Throttling: It can track how many L7 requests (POST /login) are originating from a specific L4 Source IP. This prevents automated brute-force password spraying attacks. [13, 14, 15] 
+
+## 3. WAF (Web Application Firewall) Integration [16, 17, 18] 
+A WAF operating inside or alongside an L7 load balancer uses L4 data as its primary frontline filter before executing expensive payload deep-inspections:
+
+* IP Reputation & Geo-Blocking: The WAF checks the L4 Source IP against a known database of malicious botnets, Tor exit nodes, or prohibited geographic regions, dropping the threat immediately.
+* Protocol & Port Anomalies: If a client sends malicious raw HTTP payloads masquerading over an unexpected non-standard port, the WAF catches the L4 protocol mismatch and blocks the transaction.
+
+------------------------------
+## ⚠️ The "Proxy" Problem (And How It Is Solved)
+When an L7 load balancer forwards a request down to your backend application servers, it initiates a brand-new L4 TCP connection. To your backend servers, the L4 Source IP now looks like the Load Balancer's internal IP, stripping away the true user's location.
+To fix this and preserve L4 data across your entire infrastructure, L7 balancers automatically inject two protocols:
+
+[ Client IP: 198.51.100.42 ]
+            │
+            ▼ (L4 Connection Terminated)
+┌───────────────────────────────────────┐
+│          L7 Load Balancer             │
+│  Preserves L4 data by injecting:      │
+│  • Header -> X-Forwarded-For          │
+│  • Protocol -> PROXY Protocol v2      │
+└───────────────────────────────────────┘
+            │
+            ▼ (New L4 Connection Formed)
+[ Backend Server sees LB IP, but reads Headers for Client IP ]
+
+
+   1. X-Forwarded-For Header: The load balancer appends the original client's L4 Source IP into this standard L7 HTTP header before passing it down the chain.
+   2. PROXY Protocol (v1/v2): For non-HTTP or raw TCP connections wrapped inside L7 (like database connections or WebSockets), the load balancer prepends a small human-readable or binary header stream containing the original client's L4 address, port, and protocol directly into the TCP packet payload. [19, 20] 
+
+------------------------------
+To help look at your specific architecture, let me know:
+
+* Which specific L7 load balancer are you evaluating (e.g., AWS ALB, NGINX, Envoy, or Cloudflare)?
+* Are you setting up IP-based rate limiting, or are you trying to throttle users based on JWT/Session tokens?
+
+
+[1] [https://www.linkedin.com](https://www.linkedin.com/pulse/load-balancer-l4-vs-l7-nitish-kulkarni-eydfc)
+[2] [https://www.cloudthat.com](https://www.cloudthat.com/resources/blog/layer-4-load-balancing-with-aws-network-load-balancer)
+[3] [https://cloud.ibm.com](https://cloud.ibm.com/docs/loadbalancer-service?topic=loadbalancer-service-layer-7-load-balancing)
+[4] [https://www.exam-labs.com](https://www.exam-labs.com/blog/mastering-the-osi-model-how-to-analyze-network-layer-charts)
+[5] [https://www.ateam-oracle.com](https://www.ateam-oracle.com/oci-network-load-balancer-types-use-cases-and-best-practice)
+[6] [https://medium.com](https://medium.com/@pawanchoudhary276437/layer-4-load-balancers-a-complete-deep-dive-guide-03fa1053f4c9)
+[7] [https://algomaster.io](https://algomaster.io/learn/system-design-interviews/design-load-balancer)
+[8] [https://codeburst.io](https://codeburst.io/load-balancers-an-analogy-cc64d9430db0)
+[9] [https://aws.plainenglish.io](https://aws.plainenglish.io/load-balancing-explained-l4-vs-l7-a06dc27dedb8)
+[10] [https://my.f5.com](https://my.f5.com/manage/s/article/K08200035)
+[11] [https://sslinsights.com](https://sslinsights.com/load-balancer-types/)
+[12] [https://blog.envoyproxy.io](https://blog.envoyproxy.io/introduction-to-modern-network-load-balancing-and-proxying-a57f6ff80236)
+[13] [https://www.linkedin.com](https://www.linkedin.com/pulse/load-balancing-discussing-statefulness-need-hashing-saurav-prateek)
+[14] [https://codeburst.io](https://codeburst.io/load-balancers-an-analogy-cc64d9430db0)
+[15] [https://aws.plainenglish.io](https://aws.plainenglish.io/the-practical-cloudflare-configuration-guide-stop-bot-attacks-and-prevent-server-overload-5a0b3a19392b)
+[16] [https://www.scaler.com](https://www.scaler.com/topics/aws/application-load-balancer/)
+[17] [https://product.definer.jp](https://product.definer.jp/members_only/a-comprehensive-guide-to-aws-load-balancing-and-ecs/)
+[18] [https://medium.com](https://medium.com/@csarat424/building-a-scalable-architecture-with-aws-network-load-balancer-nlb-a6874229c656)
+[19] [https://www.reddit.com](https://www.reddit.com/r/devops/comments/9aqxsa/noob_how_to_correctly_use_load_balancers_to_scale/)
+[20] [https://docs.fortinet.com](https://docs.fortinet.com/document/fortiadc/8.0.0/new-features/123630/server-load-balance)
+
+# Quest-12. Does it terminate the TCP connection as well at LB then, forming a new one internally before sending the response? Or, keeps alive the TCP Connection at LB then, recreating a new one for internal communication? Somewhere it was mentioned that TCP handshake is done with LB which in turn performs this with internal backend servers then, responds to Client with ACK - suggests same three-way handshake is used.
+  An L7 load balancer fully terminates the TCP connection from the client and operates using a "Two-TCP-Connections" architecture. It behaves as a full reverse proxy. [1, 2] 
+To clarify the confusion about the three-way handshake: yes, the standard SYN $\rightarrow$ SYN-ACK $\rightarrow$ ACK three-way handshake is used, but it happens twice, on two completely separate, independent lifecycles. The load balancer never just "passes through" or blindly replicates the client's handshake down to the server. [1, 3, 4, 5, 6] 
+------------------------------
+## ⏱️ The Execution Timeline of an L7 Request
+The full lifecycle of how an L7 load balancer (like AWS ALB or NGINX) processes a request highlights how the two connections stay separate: [7, 8, 9, 10] 
+
+ Client                          L7 Load Balancer                     Backend Server
+   │                                     │                                   │
+   │────── Step 1: TCP Handshake ───────>│                                   │
+   │<───── (SYN / SYN-ACK / ACK) ───────│                                   │
+   │                                     │                                   │
+   │────── Step 2: Send HTTP Payload ───>│                                   │
+   │       "GET /api/v1/checkout"        │ (Inspects & Routes)               │
+   │                                     │                                   │
+   │                                     │────── Step 3: Backend Handshake ──>│
+   │                                     │<───── (SYN / SYN-ACK / ACK) ──────│
+   │                                     │                                   │
+   │                                     │────── Step 4: Forward Request ───>│
+   │                                     │<───── Step 5: Return Response ────│
+   │                                     │                                   │
+   │<───── Step 6: Relay Response ───────│                                   │
+
+## Step 1: The Client TCP Handshake (Terminated at LB)
+The client initiates a three-way TCP handshake. The destination IP of this handshake is the Load Balancer’s Public VIP (Virtual IP). The load balancer acts as the server here and responds directly to the client with an ACK. At this exact moment, the backend servers have absolutely no idea a client is trying to connect. [4, 11, 12, 13] 
+## Step 2: Payload Delivery & Inspection
+Once the client-to-LB connection is open, the client sends its application payload (e.g., the HTTP headers, URL path, cookies, and TLS handshake). Because the connection was terminated at the LB, the LB decrypts the traffic and reads the string: GET /api/v1/checkout. It applies routing logic, WAF checks, and rate limits. [7, 14, 15, 16] 
+## Step 3: The Backend TCP Handshake
+The load balancer selects the correct backend target (e.g., the Checkout Microservice). The LB now acts as a client and initiates a brand-new, independent three-way TCP handshake with the backend server’s internal private IP. [1, 7, 14, 17, 18] 
+## Steps 4, 5, & 6: Data Relay
+The LB forwards the HTTP request over this second connection. The backend server processes the business logic and sends the HTTP response back to the LB. The LB translates, packs, and relays that data over the first connection back to the client. [7, 19] 
+------------------------------
+## 🏎️ Connection Pooling & Re-use (Keeping It Alive)
+Performing a brand-new three-way TCP handshake (and potentially a TLS handshake) with a backend server for every single incoming request would create massive network latency and CPU overhead. [5, 20, 21] 
+To solve this, L7 load balancers use TCP Connection Pooling (Keep-Alives): [5] 
+
+* Client-Side: The TCP connection between the Client and the LB stays alive as long as the client's browser/app is active.
+* Backend-Side: The load balancer maintains a long-lived, pre-established "pool" of warm TCP connections directly to the backend servers.
+* The Magic: When a request arrives from a client, the LB parses it and instantly shoots it down an already open, existing TCP connection from its backend pool. This completely skips the backend three-way handshake latency for that request. [5, 14, 22] 
+
+------------------------------
+## ⚖️ L4 vs L7 Handshake Behavior
+The design choice where the three-way handshake is mapped entirely down to the backend server applies specifically to Layer 4 Load Balancers in Passthrough/NAT mode: [11, 22] 
+
+| Feature [1, 3, 4, 11, 18] | Layer 4 Load Balancer (Passthrough) | Layer 7 Load Balancer (Proxy) |
+|---|---|---|
+| TCP Connections | One single end-to-end connection between client and backend. | Two isolated connections (Client $\rightarrow$ LB and LB $\rightarrow$ Backend). |
+| Handshake Behavior | The LB intercepts the client's SYN, rewrites the packet headers, and forwards it. The backend server receives it and sends the SYN-ACK back through the LB. | The LB handles the client's SYN and sends an ACK immediately. It handles the backend handshake completely independently. |
+| Inspection Capability | Cannot see HTTP paths, cookies, or data headers. | Full insight into all L4 metrics and L7 application data. |
+
+------------------------------
+To help optimize this setup for your system, let me know:
+
+* Do you want to see how to configure HTTP Keep-Alives and upstream connection timeouts in NGINX or HAProxy to prevent backend connection starvation?
+* Are you designing for a high-throughput system where the L4 handshake latency might become a bottleneck?
+
+
+[1] [https://medium.com](https://medium.com/@akashsdas_dev/load-balancers-3f37caa08759)
+[2] [https://www.youtube.com](https://www.youtube.com/watch?v=lshA08A9u1k&t=588)
+[3] [https://serverfault.com](https://serverfault.com/questions/1054906/tls-passthrough-on-a-layer-7-load-balancer)
+[4] [https://blog.envoyproxy.io](https://blog.envoyproxy.io/introduction-to-modern-network-load-balancing-and-proxying-a57f6ff80236)
+[5] [https://www.f5.com](https://www.f5.com/glossary/layer-7-load-balancing)
+[6] [https://quizlet.com](https://quizlet.com/au/462545395/itn-266-final-468-mod-a-flash-cards/)
+[7] [https://oneuptime.com](https://oneuptime.com/blog/post/2026-01-27-load-balancing-l4-vs-l7/view)
+[8] [https://adityagoel123.medium.com](https://adityagoel123.medium.com/deep-dive-into-the-load-balancers-5fcdb123aa53)
+[9] [https://www.code4it.dev](https://www.code4it.dev/architecture-notes/l4-vs-l7-load-balancers/)
+[10] [https://levelup.gitconnected.com](https://levelup.gitconnected.com/rosa-networking-explained-internal-alb-ingress-controller-and-pod-level-load-balancing-part-2-7c06461ae674)
+[11] [https://medium.com](https://medium.com/@karthiksainadhreddy/system-design-series-part-5-l4-vs-l7-load-balancers-0bc35a31861c)
+[12] [https://support.huaweicloud.com](https://support.huaweicloud.com/intl/en-us/usermanual-elb/elb_lb_000010.html)
+[13] [https://repost.aws](https://repost.aws/knowledge-center/elb-ssl-tls-negotiation-errors)
+[14] [https://medium.com](https://medium.com/@jothiprakash888/load-balancers-l4-vs-l7-an-overview-629abf600345)
+[15] [https://www.haproxy.com](https://www.haproxy.com/glossary/what-is-layer-7-load-balancing)
+[16] [https://serverfault.com](https://serverfault.com/questions/1054906/tls-passthrough-on-a-layer-7-load-balancer)
+[17] [https://upcloud.com](https://upcloud.com/docs/guides/configure-frontend-rules-upcloud-managed-load-balancer/)
+[18] [https://www.youtube.com](https://www.youtube.com/watch?v=O_DfHBPYLTA&t=389)
+[19] [https://www.reddit.com](https://www.reddit.com/r/networking/comments/x27rpu/i_dont_understand_how_load_balancing_on_level_4/)
+[20] [https://www.youtube.com](https://www.youtube.com/watch?v=1SF4rx8pxqg)
+[21] [https://www.youtube.com](https://www.youtube.com/watch?v=6ferYLH-C7M&vl=en&t=299)
+[22] [https://medium.com](https://medium.com/@akashsdas_dev/load-balancers-3f37caa08759)
+
+# Quest-13. 10 systems connect with a router - how is IP assigned? Do all 10 systems have same IP? How are these requests routed to google.com? Share a flowchart based explanation - keep succinct.
+
+  ## 🗺️ Step 1: The Network Flowchart
+
+[ Private Network: LAN ]                                     [ Public Network: WAN ]
+ 
+  🖥️ System 1 (192.168.1.10) ──┐
+  🖥️ System 2 (192.168.1.11) ──┼─> [ ROUTER ] ───────────────> [ Google Server ]
+  🖥️ System 3 (192.168.1.12) ──┘   • DHCP Server               (Public IP: 142.250.1.1)
+                                   • Public IP: 203.0.113.5
+                                   • NAT Translation Table
+
+------------------------------
+## ⚙️ Step 2: How IP Addresses Are Assigned
+
+* The Mechanism: The router uses a built-in software feature called a DHCP Server (Dynamic Host Configuration Protocol).
+* The Process: When a system boots up and connects via Wi-Fi or Ethernet, it broadcasts a request asking for network configurations. The router intercepts this and hands out a unique, private IP address along with the lease duration.
+
+------------------------------
+## 🆔 Step 3: Do all 10 systems have the same IP?
+
+* Internally (No): Within your local home or office network (LAN), each system must have a unique Private IP (typically ranging from 192.168.1.2 to 192.168.1.254). If they shared an IP internally, an IP conflict error would occur, crashing network delivery.
+* Externally (Yes): To the outside internet, all 10 systems share the exact same single Public IP address. This public address is assigned to your router's wide-area network (WAN) port by your Internet Service Provider (ISP).
+
+------------------------------
+## 🔄 Step 4: How Requests Are Routed to Google (NAT Process)
+When System 1 (192.168.1.10:port 5001) sends a request to Google, the router performs NAT (Network Address Translation) to orchestrate the traffic:
+
+[System 1 sends Request]
+ Source: 192.168.1.10:5001  ──>  Destination: 142.250.1.1:443
+                                       │
+                                       ▼
+                             ┌──────────────────┐
+                             │    THE ROUTER    │
+                             └──────────────────┘
+                                       │
+                                       ▼
+[Router rewrites packet header and saves map to NAT Table]
+ NAT Table Map: [192.168.1.10:5001]  <--->  [203.0.113.5:9000]
+                                       │
+                                       ▼
+[Router forwards packet out to Public Internet]
+ Source: 203.0.113.5:9000   ──>  Destination: 142.250.1.1:443
+
+
+   1. Packet Interception: The router takes the internal packet from System 1.
+   2. Header Rewriting: It strips the private source IP (192.168.1.10) and replaces it with its own public WAN IP (203.0.113.5).
+   3. The Port Map Entry: It assigns a unique tracking port number (e.g., 9000) to this specific session and logs it inside a dynamic NAT Translation Table.
+   4. Google Responds: Google processes the data and sends a response back to the router's public address targeting port 9000.
+   5. Reverse Lookup: The router checks its NAT table, sees that public port 9000 belongs to internal System 1 at port 5001, changes the packet header back, and delivers the file straight to System 1's screen.
+
+------------------------------
+If you are expanding this setup, let me know:
+
+* Do you want to see how Port Forwarding (Inbound NAT) works if one of those 10 systems wants to host a public web server?
+* Are you troubleshooting an issue with IP Address Exhaustion or DHCP IP Conflicts?
+
+# Quest-14. 
