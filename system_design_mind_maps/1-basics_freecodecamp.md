@@ -40,7 +40,7 @@
 - **Latency**
   - Affected by Client-Server distance.
   - Time taken for a client request to reach server (Correct).
-  - Request-Response cycle = Latency (duration for client request to reach server) + Server's response generation time on received request.
+  - Request-Response cycle = Latency (duration for client request to reach server) + Server's response generation time on received request + Latency (duration for server's response to reach client) = 2 * Latency + Server's processing time
   - Minimising Client-Server distance reduces latency. Efficient, optimum processing of request reduces server's response generation time (e.g., searching in a dict over an array).
 
 - **Throughput**
@@ -70,7 +70,7 @@
 
 ## 4. Caching and CDNs
 - **Caching**  
-  - Stores frequently used data for fast access (reduces latency).
+  - Stores frequently used data for fast access (reduces processing time ~ eventually reducing response time).
   - Reduces Database overload
   - Reduces Network calls to Database
   - Fast access compared to Disk/Database
@@ -104,7 +104,7 @@
 - Provides "Intelligent Request-Response routing".
 
 ## 7. Hashing
-- **Hashing:** Puts universe of keys to fixed size bags.
+- **Hashing:** Puts universe of keys to fix sized bags.
 - Collision Handling: Chaining, Open Addressing: Linear, Quadratic and Double Hashing/Probing.
 - **Cons:**
   - server fails, traffic still gets routed to it.
